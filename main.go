@@ -1,9 +1,12 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 type User struct {
@@ -60,6 +63,15 @@ var items = []Item{
 }
 
 func main() {
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Fatal("Error loading dotenv file")
+		os.Exit(1)
+	}
+
+	port := os.Getenv("PORT")
+
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -72,5 +84,5 @@ func main() {
 		c.IndentedJSON(http.StatusOK, items)
 	})
 
-	r.Run()
+	r.Run(":" + port)
 }
