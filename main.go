@@ -83,6 +83,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	initializers.AutomigrateDB(db)
+
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
