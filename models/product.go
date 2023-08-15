@@ -4,9 +4,9 @@ import "gorm.io/gorm"
 
 type Product struct {
 	gorm.Model
-	Name        string
+	Name        string `gorm:"not null"`
 	Description string
 	Price       int64
-	UserID      uint
+	UserID      uint `gorm:"not null"`
 	Comments    []Comment
 }
