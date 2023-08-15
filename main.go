@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/brunohradec/go-webstore/initializers"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 type User struct {
@@ -63,14 +63,25 @@ var items = []Item{
 }
 
 func main() {
-	err := godotenv.Load()
+	env, err := initializers.LoadDotenvVariables()
 
 	if err != nil {
 		log.Fatal("Error loading dotenv file")
 		os.Exit(1)
 	}
 
-	port := os.Getenv("PORT")
+	db, err := initializers.ConnectToDB(
+		env.DB.Host,
+		env.DB.Port,
+		env.DB.Name,
+		env.DB.Username,
+		env.DB.Password,
+	)
+
+	if err != nil {
+		log.Fatal("Error connecting to the database")
+		os.Exit(1)
+	}
 
 	r := gin.Default()
 
@@ -84,5 +95,5 @@ func main() {
 		c.IndentedJSON(http.StatusOK, items)
 	})
 
-	r.Run(":" + port)
+	r.Run(":" + env.Port)
 }
