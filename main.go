@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/brunohradec/go-webstore/initializers"
+	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,6 +32,9 @@ func main() {
 	}
 
 	initializers.AutomigrateDB(db)
+
+	shared.Env = env
+	shared.DB = db
 
 	r := gin.Default()
 
