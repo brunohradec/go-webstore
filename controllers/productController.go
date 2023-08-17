@@ -94,7 +94,7 @@ func FindAllProducts(c *gin.Context) {
 func FindProductsByUserID(c *gin.Context) {
 	page := utils.ParsePageFromQuery(c)
 
-	userIDStr := c.Param("id")
+	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 
 	if err != nil {

@@ -48,8 +48,8 @@ func SaveNewComment(c *gin.Context) {
 func FindCommentsByProductID(c *gin.Context) {
 	page := utils.ParsePageFromQuery(c)
 
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	productIdStr := c.Param("productId")
+	productId, err := strconv.ParseUint(productIdStr, 10, 64)
 
 	if err != nil {
 		RejectResponseAndLog(
@@ -60,7 +60,7 @@ func FindCommentsByProductID(c *gin.Context) {
 		)
 	}
 
-	comments := services.FindCommentsByProductID(uint(id), page)
+	comments := services.FindCommentsByProductID(uint(productId), page)
 	commentDTOs := make([]*dtos.CommentResponseDto, len(comments))
 
 	for i, comment := range comments {

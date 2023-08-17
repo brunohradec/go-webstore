@@ -87,7 +87,7 @@ func FindUserByID(c *gin.Context) {
 }
 
 func FindUserByUseraname(c *gin.Context) {
-	username := c.Query("username")
+	username := c.Param("username")
 
 	user, err := services.FindUserByUseraname(username)
 
