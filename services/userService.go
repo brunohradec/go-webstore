@@ -21,6 +21,6 @@ func UpdateUserByID(ID uint, updatedUser *models.User) error {
 	return repositories.UpdateUserByID(ID, updatedUser)
 }
 
-func DeleteUserById(ID uint) error {
+func DeleteUserByID(ID uint) error {
 	return repositories.DeleteUserById(ID)
 }

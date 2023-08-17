@@ -21,10 +21,12 @@ type CommentResponseDto struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-func CommentDTOToModel(dto *CommentDTO) *models.Comment {
+// User ID usually commes from the currently logged in user
+func CommentDTOToModel(dto *CommentDTO, userID uint) *models.Comment {
 	return &models.Comment{
 		Content:   dto.Content,
 		ProductID: dto.ProductID,
+		UserID:    userID,
 	}
 }
 

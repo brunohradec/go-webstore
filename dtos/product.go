@@ -8,7 +8,7 @@ type ProductDTO struct {
 	Price       int64  `json:"price"`
 }
 
-type ProductResponseDto struct {
+type ProductResponseDTO struct {
 	ID          uint   `json:"ID"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -24,8 +24,8 @@ func ProductDTOToModel(dto *ProductDTO) *models.Product {
 	}
 }
 
-func ProductModelToResponseDTO(model *models.Product) *ProductResponseDto {
-	return &ProductResponseDto{
+func ProductModelToResponseDTO(model *models.Product) *ProductResponseDTO {
+	return &ProductResponseDTO{
 		ID:          model.ID,
 		Name:        model.Name,
 		Description: model.Description,
