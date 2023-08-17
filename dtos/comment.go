@@ -1,10 +1,10 @@
-package dto
+package dtos
 
 import "time"
 
 type CommentCreateDto struct {
-	Content   string `json:"content"`
-	ProductID uint   `json:"productID"`
+	Content   string `json:"content" validate:"required"`
+	ProductID uint   `json:"productID" validate:"required"`
 }
 
 type CommentResponseDto struct {

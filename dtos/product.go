@@ -1,7 +1,7 @@
-package dto
+package dtos
 
 type ProductCreateDto struct {
-	Name        string `json:"name"`
+	Name        string `json:"name" validate:"required"`
 	Description string `json:"description"`
 	Price       int64  `json:"price"`
 }
