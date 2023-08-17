@@ -32,11 +32,11 @@ func FindCommentByID(ID uint) (*models.Comment, error) {
 	return &comment, nil
 }
 
-func FindCommentsByProductID(productID uint, page int, pageSize int) []models.Comment {
+func FindCommentsByProductID(productID uint, page utils.Page) []models.Comment {
 	var comments []models.Comment
 
 	shared.DB.
-		Scopes(utils.Paginate(page, pageSize)).
+		Scopes(utils.Paginate(page)).
 		Where("product_id = ?", productID).
 		Find(&comments)
 

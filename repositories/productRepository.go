@@ -32,19 +32,19 @@ func FindProductByID(ID uint) (*models.Product, error) {
 	return &product, nil
 }
 
-func FindAllProducts(page int, pageSize int) []models.Product {
+func FindAllProducts(page utils.Page) []models.Product {
 	var products []models.Product
 
-	shared.DB.Scopes(utils.Paginate(page, pageSize)).Find(&products)
+	shared.DB.Scopes(utils.Paginate(page)).Find(&products)
 
 	return products
 }
 
-func FindProductsByUserID(userID uint, page int, pageSize int) []models.Product {
+func FindProductsByUserID(userID uint, page utils.Page) []models.Product {
 	var products []models.Product
 
 	shared.DB.
-		Scopes(utils.Paginate(page, pageSize)).
+		Scopes(utils.Paginate(page)).
 		Where("user_id = ?", userID).
 		Find(&products)
 
