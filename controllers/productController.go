@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -14,22 +15,22 @@ import (
 )
 
 func SaveNewProduct(c *gin.Context) {
-	var newProduct dtos.ProductDTO
+	var productDTO dtos.ProductDTO
 
-	err := c.BindJSON(&newProduct)
+	err := c.BindJSON(&productDTO)
 
 	if err != nil {
-		msg := "Error binding JSON while saving new product"
+		msg := "Error binding JSON while saving product"
 		log.Println(msg, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": msg,
 		})
 	}
 
-	newProductId, err := services.SaveNewProduct(dtos.ProductDTOToModel(&newProduct))
+	id, err := services.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
-		msg := "Error while saving new product"
+		msg := "Error while saving product"
 		log.Println(msg, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": msg,
@@ -37,7 +38,7 @@ func SaveNewProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"id": newProductId,
+		"id": id,
 	})
 }
 
@@ -47,22 +48,22 @@ func FindProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		msg := "Error while parsing ID from path params"
+		msg := "Error while parsing ID from path params while finding product by ID"
 		log.Println(msg, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": msg,
 		})
 	}
 
-	foundUser, err := services.FindProductByID(uint(id))
+	product, err := services.FindProductByID(uint(id))
 
 	if err != nil {
 		var msg string
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			msg = "Product with the given id not found"
+			msg = fmt.Sprintf("Product with the ID %d not found", id)
 		} else {
-			msg = "Error while finding product"
+			msg = fmt.Sprintf("Error while finding product with the ID %d", id)
 		}
 
 		log.Println(msg, err)
@@ -72,21 +73,20 @@ func FindProductByID(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, foundUser)
+	c.JSON(http.StatusOK, product)
 }
 
 func FindAllProducts(c *gin.Context) {
 	page := utils.ParsePageFromQuery(c)
 
-	foundProducts := services.FindAllProducts(page)
+	products := services.FindAllProducts(page)
+	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
 
-	mappedProducts := make([]*dtos.ProductResponseDTO, len(foundProducts))
-
-	for i, product := range foundProducts {
-		mappedProducts[i] = dtos.ProductModelToResponseDTO(&product)
+	for i, product := range products {
+		productDTOs[i] = dtos.ProductModelToResponseDTO(&product)
 	}
 
-	c.JSON(http.StatusOK, mappedProducts)
+	c.JSON(http.StatusOK, productDTOs)
 }
 
 func FindProductsByUserID(c *gin.Context) {
@@ -97,60 +97,59 @@ func FindProductsByUserID(c *gin.Context) {
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 
 	if err != nil {
-		msg := "Error while parsing ID from path params"
+		msg := "Error while parsing ID from path params while finding products by user ID"
 		log.Println(msg, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": msg,
 		})
 	}
 
-	foundProducts := services.FindProductsByUserID(uint(userID), page)
+	products := services.FindProductsByUserID(uint(userID), page)
+	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
 
-	mappedProducts := make([]*dtos.ProductResponseDTO, len(foundProducts))
-
-	for i, product := range foundProducts {
-		mappedProducts[i] = dtos.ProductModelToResponseDTO(&product)
+	for i, product := range products {
+		productDTOs[i] = dtos.ProductModelToResponseDTO(&product)
 	}
 
-	c.JSON(http.StatusOK, mappedProducts)
+	c.JSON(http.StatusOK, productDTOs)
 }
 
-func UpdateProductById(c *gin.Context) {
+func UpdateProductByID(c *gin.Context) {
 	idStr := c.Param("id")
 
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		msg := "Error while parsing ID from path params"
+		msg := "Error while parsing ID from path params while updating product by ID"
 		log.Println(msg, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": msg,
 		})
 	}
 
-	var updatedProduct dtos.ProductDTO
+	var productDTO dtos.ProductDTO
 
-	if err := c.BindJSON(&updatedProduct); err != nil {
-		msg := "Error binding JSON while updating product"
+	if err := c.BindJSON(&productDTO); err != nil {
+		msg := fmt.Sprintf("Error binding JSON while updating product with the ID %d", id)
 		log.Println(msg, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": msg,
 		})
 	}
 
-	err = services.UpdateProductByID(uint(id), dtos.ProductDTOToModel(&updatedProduct))
+	err = services.UpdateProductByID(uint(id), dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
 		var msg string
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			msg = "Error updating product. Product with the given id does not exist"
+			msg = fmt.Sprintf("Error updating product. Product with the ID %d does not exist", id)
 			log.Println(msg, err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": msg,
 			})
 		} else {
-			msg = "Error updating product"
+			msg = fmt.Sprintf("Error updating product with the ID %d", id)
 			log.Println(msg, err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": msg,
@@ -166,7 +165,7 @@ func DeleteProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		msg := "Error while parsing ID from path params"
+		msg := "Error while parsing ID from path params while deleting product by ID"
 		log.Println(msg, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": msg,
@@ -176,7 +175,7 @@ func DeleteProductByID(c *gin.Context) {
 	err = services.DeleteProductByID(uint(id))
 
 	if err != nil {
-		msg := "Error while deleting product"
+		msg := fmt.Sprintf("Error while deleting product with the ID %d", id)
 		log.Println(msg, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": msg,
