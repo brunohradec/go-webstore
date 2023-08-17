@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -14,104 +13,107 @@ import (
 )
 
 func SaveNewComment(c *gin.Context) {
-	var newComment dtos.CommentDTO
+	var comment dtos.CommentDTO
 
-	err := c.BindJSON(&newComment)
+	err := c.BindJSON(&comment)
 
 	if err != nil {
-		msg := "Error binding JSON while saving new comment"
-		log.Println(msg, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": msg,
-		})
+		RejectResponseAndLog(
+			"Error binding JSON while saving new comment",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 	}
 
 	// TODO - add reading of currently logged in user ID here
 	userId := uint(1)
 
-	newCommentId, err := services.SaveNewComment(dtos.CommentDTOToModel(&newComment, userId))
+	id, err := services.SaveNewComment(dtos.CommentDTOToModel(&comment, userId))
 
 	if err != nil {
-		msg := "Error while saving new comment"
-		log.Println(msg, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": msg,
-		})
+		RejectResponseAndLog(
+			"Error while saving new comment",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"id": newCommentId,
+		"id": id,
 	})
 }
 
 func FindCommentsByProductID(c *gin.Context) {
 	page := utils.ParsePageFromQuery(c)
 
-	productIDStr := c.Param("id")
-	productID, err := strconv.ParseUint(productIDStr, 10, 64)
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		msg := "Error while parsing ID from path params"
-		log.Println(msg, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": msg,
-		})
+		RejectResponseAndLog(
+			"Error while parsing ID from path params",
+			http.StatusBadRequest,
+			err,
+			c,
+		)
 	}
 
-	foundComments := services.FindCommentsByProductID(uint(productID), page)
+	comments := services.FindCommentsByProductID(uint(id), page)
+	commentDTOs := make([]*dtos.CommentResponseDto, len(comments))
 
-	mappedComments := make([]*dtos.CommentResponseDto, len(foundComments))
-
-	for i, comment := range foundComments {
-		mappedComments[i] = dtos.CommentModelToResponseDTO(&comment)
+	for i, comment := range comments {
+		commentDTOs[i] = dtos.CommentModelToResponseDTO(&comment)
 	}
 
-	c.JSON(http.StatusOK, mappedComments)
+	c.JSON(http.StatusOK, commentDTOs)
 }
 
 func UpdateCommentByID(c *gin.Context) {
 	idStr := c.Param("id")
-
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		msg := "Error while parsing ID from path params"
-		log.Println(msg, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": msg,
-		})
+		RejectResponseAndLog(
+			"Error while parsing ID from path params",
+			http.StatusBadRequest,
+			err,
+			c,
+		)
 	}
 
-	var updatedComment dtos.CommentDTO
+	var commentDTO dtos.CommentDTO
 
-	if err := c.BindJSON(&updatedComment); err != nil {
-		msg := "Error binding JSON while updating comment"
-		log.Println(msg, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": msg,
-		})
+	if err := c.BindJSON(&commentDTO); err != nil {
+		RejectResponseAndLog(
+			"Error binding JSON while updating comment",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 	}
 
 	// TODO - add reading of currently logged in user ID here
 	userId := uint(1)
 
-	err = services.UpdateCommentByID(uint(id), dtos.CommentDTOToModel(&updatedComment, userId))
+	err = services.UpdateCommentByID(uint(id), dtos.CommentDTOToModel(&commentDTO, userId))
 
 	if err != nil {
-		var msg string
-
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			msg = "Error updating comment. Comment with the given id does not exist"
-			log.Println(msg, err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": msg,
-			})
+			RejectResponseAndLog(
+				"Error updating comment. Comment with the given ID does not exist",
+				http.StatusNotFound,
+				err,
+				c,
+			)
 		} else {
-			msg = "Error updating comment"
-			log.Println(msg, err)
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": msg,
-			})
+			RejectResponseAndLog(
+				"Error updating comment",
+				http.StatusInternalServerError,
+				err,
+				c,
+			)
 		}
 	}
 
@@ -119,24 +121,34 @@ func UpdateCommentByID(c *gin.Context) {
 
 func DeleteCommentByID(c *gin.Context) {
 	idStr := c.Param("id")
-
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		msg := "Error while parsing ID from path params"
-		log.Println(msg, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": msg,
-		})
+		RejectResponseAndLog(
+			"Error while parsing ID from path params",
+			http.StatusBadRequest,
+			err,
+			c,
+		)
 	}
 
 	err = services.DeleteCommentByID(uint(id))
 
 	if err != nil {
-		msg := "Error while deleting comment"
-		log.Println(msg, err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": msg,
-		})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			RejectResponseAndLog(
+				"Error deleting comment. Comment with the given ID does not exist",
+				http.StatusNotFound,
+				err,
+				c,
+			)
+		} else {
+			RejectResponseAndLog(
+				"Error deleting comment",
+				http.StatusInternalServerError,
+				err,
+				c,
+			)
+		}
 	}
 }
