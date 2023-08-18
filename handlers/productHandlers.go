@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/brunohradec/go-webstore/dtos"
-	"github.com/brunohradec/go-webstore/repositories"
+	"github.com/brunohradec/go-webstore/repository"
 	"github.com/brunohradec/go-webstore/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -26,7 +26,7 @@ func SaveNewProduct(c *gin.Context) {
 		)
 	}
 
-	id, err := repositories.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
+	id, err := repository.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
 		utils.RejectResponseAndLog(
@@ -55,7 +55,7 @@ func FindProductByID(c *gin.Context) {
 		)
 	}
 
-	product, err := repositories.FindProductByID(uint(id))
+	product, err := repository.FindProductByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -81,7 +81,7 @@ func FindProductByID(c *gin.Context) {
 func FindAllProducts(c *gin.Context) {
 	page := utils.ParsePageFromQuery(c)
 
-	products := repositories.FindAllProducts(page)
+	products := repository.FindAllProducts(page)
 	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
 
 	for i, product := range products {
@@ -106,7 +106,7 @@ func FindProductsByUserID(c *gin.Context) {
 		)
 	}
 
-	products := repositories.FindProductsByUserID(uint(userID), page)
+	products := repository.FindProductsByUserID(uint(userID), page)
 	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
 
 	for i, product := range products {
@@ -140,7 +140,7 @@ func UpdateProductByID(c *gin.Context) {
 		)
 	}
 
-	err = repositories.UpdateProductByID(uint(id), dtos.ProductDTOToModel(&productDTO))
+	err = repository.UpdateProductByID(uint(id), dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -175,7 +175,7 @@ func DeleteProductByID(c *gin.Context) {
 		)
 	}
 
-	err = repositories.DeleteProductByID(uint(id))
+	err = repository.DeleteProductByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
