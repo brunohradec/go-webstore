@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/brunohradec/go-webstore/controllers"
+	"github.com/brunohradec/go-webstore/handlers"
 	"github.com/brunohradec/go-webstore/initializers"
 	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
@@ -49,29 +49,29 @@ func main() {
 	{
 		users := api.Group("/users")
 		{
-			users.POST("/", controllers.SaveNewUser)
-			users.GET("/:id", controllers.FindUserByID)
-			users.GET("/username/:username", controllers.FindUserByUseraname)
-			users.PUT("/:id", controllers.UpdateUserByID)
-			users.DELETE("/:id", controllers.DeleteUserByID)
+			users.POST("/", handlers.SaveNewUser)
+			users.GET("/:id", handlers.FindUserByID)
+			users.GET("/username/:username", handlers.FindUserByUseraname)
+			users.PUT("/:id", handlers.UpdateUserByID)
+			users.DELETE("/:id", handlers.DeleteUserByID)
 		}
 
 		products := api.Group("/products")
 		{
-			products.POST("/", controllers.SaveNewProduct)
-			products.GET("/", controllers.FindAllProducts)
-			products.GET("/:id", controllers.FindProductByID)
-			products.GET("/user/:userId", controllers.FindProductsByUserID)
-			products.PUT("/:id", controllers.UpdateProductByID)
-			products.DELETE("/:id", controllers.DeleteProductByID)
+			products.POST("/", handlers.SaveNewProduct)
+			products.GET("/", handlers.FindAllProducts)
+			products.GET("/:id", handlers.FindProductByID)
+			products.GET("/user/:userId", handlers.FindProductsByUserID)
+			products.PUT("/:id", handlers.UpdateProductByID)
+			products.DELETE("/:id", handlers.DeleteProductByID)
 		}
 
 		comments := api.Group("/comments")
 		{
-			comments.POST("/", controllers.SaveNewComment)
-			comments.GET("/product/:productId", controllers.FindCommentsByProductID)
-			comments.PUT("/:id", controllers.UpdateCommentByID)
-			comments.DELETE("/:id", controllers.DeleteCommentByID)
+			comments.POST("/", handlers.SaveNewComment)
+			comments.GET("/product/:productId", handlers.FindCommentsByProductID)
+			comments.PUT("/:id", handlers.UpdateCommentByID)
+			comments.DELETE("/:id", handlers.DeleteCommentByID)
 		}
 	}
 

@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/brunohradec/go-webstore/dtos"
-	"github.com/brunohradec/go-webstore/services"
+	"github.com/brunohradec/go-webstore/repositories"
 	"github.com/brunohradec/go-webstore/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,13 +20,13 @@ func SaveNewProduct(c *gin.Context) {
 	if err != nil {
 		utils.RejectResponseAndLog(
 			"Error binding JSON while saving new product",
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			err,
 			c,
 		)
 	}
 
-	id, err := services.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
+	id, err := repositories.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
 		utils.RejectResponseAndLog(
@@ -55,7 +55,7 @@ func FindProductByID(c *gin.Context) {
 		)
 	}
 
-	product, err := services.FindProductByID(uint(id))
+	product, err := repositories.FindProductByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -81,7 +81,7 @@ func FindProductByID(c *gin.Context) {
 func FindAllProducts(c *gin.Context) {
 	page := utils.ParsePageFromQuery(c)
 
-	products := services.FindAllProducts(page)
+	products := repositories.FindAllProducts(page)
 	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
 
 	for i, product := range products {
@@ -106,7 +106,7 @@ func FindProductsByUserID(c *gin.Context) {
 		)
 	}
 
-	products := services.FindProductsByUserID(uint(userID), page)
+	products := repositories.FindProductsByUserID(uint(userID), page)
 	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
 
 	for i, product := range products {
@@ -134,13 +134,13 @@ func UpdateProductByID(c *gin.Context) {
 	if err := c.BindJSON(&productDTO); err != nil {
 		utils.RejectResponseAndLog(
 			"Error binding JSON while updating product",
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			err,
 			c,
 		)
 	}
 
-	err = services.UpdateProductByID(uint(id), dtos.ProductDTOToModel(&productDTO))
+	err = repositories.UpdateProductByID(uint(id), dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -175,7 +175,7 @@ func DeleteProductByID(c *gin.Context) {
 		)
 	}
 
-	err = services.DeleteProductByID(uint(id))
+	err = repositories.DeleteProductByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

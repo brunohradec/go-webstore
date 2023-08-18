@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/brunohradec/go-webstore/dtos"
-	"github.com/brunohradec/go-webstore/services"
+	"github.com/brunohradec/go-webstore/repository"
 	"github.com/brunohradec/go-webstore/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,13 +20,13 @@ func SaveNewUser(c *gin.Context) {
 	if err != nil {
 		utils.RejectResponseAndLog(
 			"Error binding JSON while saving new user",
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			err,
 			c,
 		)
 	}
 
-	id, err := services.SaveNewUser(dtos.UserDTOToModel(&userDTO))
+	id, err := repository.SaveNewUser(dtos.UserDTOToModel(&userDTO))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
@@ -64,7 +64,7 @@ func FindUserByID(c *gin.Context) {
 		)
 	}
 
-	user, err := services.FindUserByID(uint(id))
+	user, err := repository.FindUserByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -90,7 +90,7 @@ func FindUserByID(c *gin.Context) {
 func FindUserByUseraname(c *gin.Context) {
 	username := c.Param("username")
 
-	user, err := services.FindUserByUseraname(username)
+	user, err := repository.FindUserByUseraname(username)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -131,13 +131,13 @@ func UpdateUserByID(c *gin.Context) {
 	if err := c.BindJSON(&userDTO); err != nil {
 		utils.RejectResponseAndLog(
 			"Error binding JSON while updating user",
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			err,
 			c,
 		)
 	}
 
-	err = services.UpdateUserByID(uint(id), dtos.UserDTOToModel(&userDTO))
+	err = repository.UpdateUserByID(uint(id), dtos.UserDTOToModel(&userDTO))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
@@ -180,7 +180,7 @@ func DeleteUserByID(c *gin.Context) {
 		)
 	}
 
-	err = services.DeleteUserByID(uint(id))
+	err = repository.DeleteUserByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

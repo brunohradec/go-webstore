@@ -1,4 +1,4 @@
-package repositories
+package repository
 
 import (
 	"log"
@@ -57,7 +57,7 @@ func UpdateUserByID(ID uint, updatedUser *models.User) error {
 	return nil
 }
 
-func DeleteUserById(ID uint) error {
+func DeleteUserByID(ID uint) error {
 	result := shared.DB.Delete(&models.User{}, ID)
 
 	if result.Error != nil {

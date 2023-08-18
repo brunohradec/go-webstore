@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/brunohradec/go-webstore/dtos"
-	"github.com/brunohradec/go-webstore/services"
+	"github.com/brunohradec/go-webstore/repository"
 	"github.com/brunohradec/go-webstore/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,7 +20,7 @@ func SaveNewComment(c *gin.Context) {
 	if err != nil {
 		utils.RejectResponseAndLog(
 			"Error binding JSON while saving new comment",
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			err,
 			c,
 		)
@@ -29,7 +29,7 @@ func SaveNewComment(c *gin.Context) {
 	// TODO - add reading of currently logged in user ID here
 	userId := uint(1)
 
-	id, err := services.SaveNewComment(dtos.CommentDTOToModel(&comment, userId))
+	id, err := repository.SaveNewComment(dtos.CommentDTOToModel(&comment, userId))
 
 	if err != nil {
 		utils.RejectResponseAndLog(
@@ -60,7 +60,7 @@ func FindCommentsByProductID(c *gin.Context) {
 		)
 	}
 
-	comments := services.FindCommentsByProductID(uint(productId), page)
+	comments := repository.FindCommentsByProductID(uint(productId), page)
 	commentDTOs := make([]*dtos.CommentResponseDto, len(comments))
 
 	for i, comment := range comments {
@@ -88,7 +88,7 @@ func UpdateCommentByID(c *gin.Context) {
 	if err := c.BindJSON(&commentDTO); err != nil {
 		utils.RejectResponseAndLog(
 			"Error binding JSON while updating comment",
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 			err,
 			c,
 		)
@@ -97,7 +97,7 @@ func UpdateCommentByID(c *gin.Context) {
 	// TODO - add reading of currently logged in user ID here
 	userId := uint(1)
 
-	err = services.UpdateCommentByID(uint(id), dtos.CommentDTOToModel(&commentDTO, userId))
+	err = repository.UpdateCommentByID(uint(id), dtos.CommentDTOToModel(&commentDTO, userId))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -132,7 +132,7 @@ func DeleteCommentByID(c *gin.Context) {
 		)
 	}
 
-	err = services.DeleteCommentByID(uint(id))
+	err = repository.DeleteCommentByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
