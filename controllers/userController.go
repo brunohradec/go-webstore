@@ -7,6 +7,7 @@ import (
 
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/services"
+	"github.com/brunohradec/go-webstore/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -17,7 +18,7 @@ func SaveNewUser(c *gin.Context) {
 	err := c.BindJSON(&userDTO)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error binding JSON while saving new user",
 			http.StatusInternalServerError,
 			err,
@@ -29,14 +30,14 @@ func SaveNewUser(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error while saving new user. User with the given username already exists",
 				http.StatusConflict,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error while saving new user",
 				http.StatusInternalServerError,
 				err,
@@ -55,7 +56,7 @@ func FindUserByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -67,14 +68,14 @@ func FindUserByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error finding user. User with the given ID not found.",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error finding user by ID",
 				http.StatusInternalServerError,
 				err,
@@ -93,14 +94,14 @@ func FindUserByUseraname(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error finding user. User with the given username not found.",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error finding user by username",
 				http.StatusInternalServerError,
 				err,
@@ -117,7 +118,7 @@ func UpdateUserByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -128,7 +129,7 @@ func UpdateUserByID(c *gin.Context) {
 	var userDTO dtos.UserDTO
 
 	if err := c.BindJSON(&userDTO); err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error binding JSON while updating user",
 			http.StatusInternalServerError,
 			err,
@@ -140,21 +141,21 @@ func UpdateUserByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error updating user. User with the given username already exists.",
 				http.StatusInternalServerError,
 				err,
 				c,
 			)
 		} else if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error updating user. User with the given ID does not exist.",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error updating user",
 				http.StatusInternalServerError,
 				err,
@@ -171,7 +172,7 @@ func DeleteUserByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -183,14 +184,14 @@ func DeleteUserByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error deleting user. User with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error deleting user",
 				http.StatusInternalServerError,
 				err,

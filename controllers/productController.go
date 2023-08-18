@@ -18,7 +18,7 @@ func SaveNewProduct(c *gin.Context) {
 	err := c.BindJSON(&productDTO)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error binding JSON while saving new product",
 			http.StatusInternalServerError,
 			err,
@@ -29,7 +29,7 @@ func SaveNewProduct(c *gin.Context) {
 	id, err := services.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while saving new product",
 			http.StatusInternalServerError,
 			err,
@@ -47,7 +47,7 @@ func FindProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -59,14 +59,14 @@ func FindProductByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error finding product. Product with the given ID not found.",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error finding product by ID",
 				http.StatusInternalServerError,
 				err,
@@ -98,7 +98,7 @@ func FindProductsByUserID(c *gin.Context) {
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error parsing user ID from query params while finding products by user ID",
 			http.StatusBadRequest,
 			err,
@@ -121,7 +121,7 @@ func UpdateProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -132,7 +132,7 @@ func UpdateProductByID(c *gin.Context) {
 	var productDTO dtos.ProductDTO
 
 	if err := c.BindJSON(&productDTO); err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error binding JSON while updating product",
 			http.StatusInternalServerError,
 			err,
@@ -144,14 +144,14 @@ func UpdateProductByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error updating product. Product with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error updating product",
 				http.StatusInternalServerError,
 				err,
@@ -167,7 +167,7 @@ func DeleteProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -179,14 +179,14 @@ func DeleteProductByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error deleting product. Product with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error deleting product",
 				http.StatusInternalServerError,
 				err,

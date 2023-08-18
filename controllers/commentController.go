@@ -18,7 +18,7 @@ func SaveNewComment(c *gin.Context) {
 	err := c.BindJSON(&comment)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error binding JSON while saving new comment",
 			http.StatusInternalServerError,
 			err,
@@ -32,7 +32,7 @@ func SaveNewComment(c *gin.Context) {
 	id, err := services.SaveNewComment(dtos.CommentDTOToModel(&comment, userId))
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while saving new comment",
 			http.StatusInternalServerError,
 			err,
@@ -52,7 +52,7 @@ func FindCommentsByProductID(c *gin.Context) {
 	productId, err := strconv.ParseUint(productIdStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -75,7 +75,7 @@ func UpdateCommentByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -86,7 +86,7 @@ func UpdateCommentByID(c *gin.Context) {
 	var commentDTO dtos.CommentDTO
 
 	if err := c.BindJSON(&commentDTO); err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error binding JSON while updating comment",
 			http.StatusInternalServerError,
 			err,
@@ -101,14 +101,14 @@ func UpdateCommentByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error updating comment. Comment with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error updating comment",
 				http.StatusInternalServerError,
 				err,
@@ -124,7 +124,7 @@ func DeleteCommentByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
+		utils.RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -136,14 +136,14 @@ func DeleteCommentByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error deleting comment. Comment with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			RejectResponseAndLog(
+			utils.RejectResponseAndLog(
 				"Error deleting comment",
 				http.StatusInternalServerError,
 				err,
