@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/brunohradec/go-webstore/models"
-	"github.com/brunohradec/go-webstore/repository"
 )
 
 type CommentDTO struct {
@@ -30,12 +29,8 @@ func CommentDTOToModel(dto *CommentDTO, userID uint) *models.Comment {
 	}
 }
 
-func CommentModelToResponseDTO(model *models.Comment) *CommentResponseDto {
-	/* As userID commes from Comment entity and userID is a foreign key,
-	 * the user with the given ID must always exist and no error handling is
-	 * necessary. */
-	user, _ := repository.FindUserByID(model.UserID)
-
+// User data is needed for adding usernames to the comment DTO
+func CommentModelToResponseDTO(model *models.Comment, user *models.User) *CommentResponseDto {
 	return &CommentResponseDto{
 		ID:        model.ID,
 		Content:   model.Content,

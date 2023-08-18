@@ -64,7 +64,11 @@ func FindCommentsByProductID(c *gin.Context) {
 	commentDTOs := make([]*dtos.CommentResponseDto, len(comments))
 
 	for i, comment := range comments {
-		commentDTOs[i] = dtos.CommentModelToResponseDTO(&comment)
+		/* As userID commes from Comment entity and userID is a foreign key,
+		* the user with the given ID must always exist and no error handling is
+		* necessary. */
+		user, _ := repository.FindUserByID(comment.UserID)
+		commentDTOs[i] = dtos.CommentModelToResponseDTO(&comment, user)
 	}
 
 	c.JSON(http.StatusOK, commentDTOs)
