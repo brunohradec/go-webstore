@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -19,7 +19,6 @@ func GenerateToken(userId uint, ttl int, secret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(secret))
-
 }
 
 func ValidateToken(token string, secret string, c *gin.Context) error {
@@ -47,7 +46,7 @@ func ExtractTokenFromRequest(c *gin.Context) (string, error) {
 		return strings.Split(bearerToken, " ")[1], nil
 	}
 
-	return "", fmt.Errorf("Could not find token in request query or header")
+	return "", errors.New("Could not find token in request query or header")
 }
 
 func ExtractUserIDFromToken(token string, secret string) (uint, error) {
@@ -62,14 +61,15 @@ func ExtractUserIDFromToken(token string, secret string) (uint, error) {
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 
 	if ok && parsedToken.Valid {
+		// JWT libraries usially repsresent all numbers as float64 type
 		claimValue, found := claims["user_id"].(float64)
 
 		if found {
 			return uint(claimValue), nil
 		} else {
-			return 0, fmt.Errorf("Claim containing user ID not found in provided token")
+			return 0, errors.New("Claim containing user ID not found in provided token")
 		}
 	} else {
-		return 0, fmt.Errorf("Provided token could not be parsed")
+		return 0, errors.New("Provided token could not be parsed")
 	}
 }
