@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"github.com/brunohradec/go-webstore/models"
+	"github.com/brunohradec/go-webstore/paging"
 	"github.com/brunohradec/go-webstore/shared"
-	"github.com/brunohradec/go-webstore/utils"
 )
 
 func SaveNewProduct(product *models.Product) (uint, error) {
@@ -32,19 +32,19 @@ func FindProductByID(ID uint) (*models.Product, error) {
 	return &product, nil
 }
 
-func FindAllProducts(page utils.Page) []models.Product {
+func FindAllProducts(page paging.Page) []models.Product {
 	var products []models.Product
 
-	shared.DB.Scopes(utils.Paginate(page)).Find(&products)
+	shared.DB.Scopes(paging.Paginate(page)).Find(&products)
 
 	return products
 }
 
-func FindProductsByUserID(userID uint, page utils.Page) []models.Product {
+func FindProductsByUserID(userID uint, page paging.Page) []models.Product {
 	var products []models.Product
 
 	shared.DB.
-		Scopes(utils.Paginate(page)).
+		Scopes(paging.Paginate(page)).
 		Where("user_id = ?", userID).
 		Find(&products)
 

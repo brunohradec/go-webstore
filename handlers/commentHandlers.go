@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/brunohradec/go-webstore/dtos"
+	"github.com/brunohradec/go-webstore/paging"
 	"github.com/brunohradec/go-webstore/repository"
-	"github.com/brunohradec/go-webstore/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -18,7 +18,7 @@ func SaveNewComment(c *gin.Context) {
 	err := c.BindJSON(&comment)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error binding JSON while saving new comment",
 			http.StatusBadRequest,
 			err,
@@ -32,7 +32,7 @@ func SaveNewComment(c *gin.Context) {
 	id, err := repository.SaveNewComment(dtos.CommentDTOToModel(&comment, userId))
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error while saving new comment",
 			http.StatusInternalServerError,
 			err,
@@ -46,13 +46,13 @@ func SaveNewComment(c *gin.Context) {
 }
 
 func FindCommentsByProductID(c *gin.Context) {
-	page := utils.ParsePageFromQuery(c)
+	page := paging.ParsePageFromQuery(c)
 
 	productIdStr := c.Param("productId")
 	productId, err := strconv.ParseUint(productIdStr, 10, 64)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -79,7 +79,7 @@ func UpdateCommentByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -90,7 +90,7 @@ func UpdateCommentByID(c *gin.Context) {
 	var commentDTO dtos.CommentDTO
 
 	if err := c.BindJSON(&commentDTO); err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error binding JSON while updating comment",
 			http.StatusBadRequest,
 			err,
@@ -105,14 +105,14 @@ func UpdateCommentByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error updating comment. Comment with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error updating comment",
 				http.StatusInternalServerError,
 				err,
@@ -128,7 +128,7 @@ func DeleteCommentByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -140,14 +140,14 @@ func DeleteCommentByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error deleting comment. Comment with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error deleting comment",
 				http.StatusInternalServerError,
 				err,

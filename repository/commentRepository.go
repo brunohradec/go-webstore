@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"github.com/brunohradec/go-webstore/models"
+	"github.com/brunohradec/go-webstore/paging"
 	"github.com/brunohradec/go-webstore/shared"
-	"github.com/brunohradec/go-webstore/utils"
 )
 
 func SaveNewComment(comment *models.Comment) (uint, error) {
@@ -32,11 +32,11 @@ func FindCommentByID(ID uint) (*models.Comment, error) {
 	return &comment, nil
 }
 
-func FindCommentsByProductID(productID uint, page utils.Page) []models.Comment {
+func FindCommentsByProductID(productID uint, page paging.Page) []models.Comment {
 	var comments []models.Comment
 
 	shared.DB.
-		Scopes(utils.Paginate(page)).
+		Scopes(paging.Paginate(page)).
 		Where("product_id = ?", productID).
 		Find(&comments)
 

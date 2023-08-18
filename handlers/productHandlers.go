@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/brunohradec/go-webstore/dtos"
+	"github.com/brunohradec/go-webstore/paging"
 	"github.com/brunohradec/go-webstore/repository"
-	"github.com/brunohradec/go-webstore/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -18,7 +18,7 @@ func SaveNewProduct(c *gin.Context) {
 	err := c.BindJSON(&productDTO)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error binding JSON while saving new product",
 			http.StatusBadRequest,
 			err,
@@ -29,7 +29,7 @@ func SaveNewProduct(c *gin.Context) {
 	id, err := repository.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error while saving new product",
 			http.StatusInternalServerError,
 			err,
@@ -47,7 +47,7 @@ func FindProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -59,14 +59,14 @@ func FindProductByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error finding product. Product with the given ID not found.",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error finding product by ID",
 				http.StatusInternalServerError,
 				err,
@@ -79,7 +79,7 @@ func FindProductByID(c *gin.Context) {
 }
 
 func FindAllProducts(c *gin.Context) {
-	page := utils.ParsePageFromQuery(c)
+	page := paging.ParsePageFromQuery(c)
 
 	products := repository.FindAllProducts(page)
 	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
@@ -92,13 +92,13 @@ func FindAllProducts(c *gin.Context) {
 }
 
 func FindProductsByUserID(c *gin.Context) {
-	page := utils.ParsePageFromQuery(c)
+	page := paging.ParsePageFromQuery(c)
 
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error parsing user ID from query params while finding products by user ID",
 			http.StatusBadRequest,
 			err,
@@ -121,7 +121,7 @@ func UpdateProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -132,7 +132,7 @@ func UpdateProductByID(c *gin.Context) {
 	var productDTO dtos.ProductDTO
 
 	if err := c.BindJSON(&productDTO); err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error binding JSON while updating product",
 			http.StatusBadRequest,
 			err,
@@ -144,14 +144,14 @@ func UpdateProductByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error updating product. Product with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error updating product",
 				http.StatusInternalServerError,
 				err,
@@ -167,7 +167,7 @@ func DeleteProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		utils.RejectResponseAndLog(
+		RejectResponseAndLog(
 			"Error while parsing ID from path params",
 			http.StatusBadRequest,
 			err,
@@ -179,14 +179,14 @@ func DeleteProductByID(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error deleting product. Product with the given ID does not exist",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
-			utils.RejectResponseAndLog(
+			RejectResponseAndLog(
 				"Error deleting product",
 				http.StatusInternalServerError,
 				err,
