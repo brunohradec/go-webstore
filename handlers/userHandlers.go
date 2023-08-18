@@ -87,32 +87,6 @@ func FindUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func FindUserByUseraname(c *gin.Context) {
-	username := c.Param("username")
-
-	user, err := repository.FindUserByUseraname(username)
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			utils.RejectResponseAndLog(
-				"Error finding user. User with the given username not found.",
-				http.StatusNotFound,
-				err,
-				c,
-			)
-		} else {
-			utils.RejectResponseAndLog(
-				"Error finding user by username",
-				http.StatusInternalServerError,
-				err,
-				c,
-			)
-		}
-	}
-
-	c.JSON(http.StatusOK, user)
-}
-
 func UpdateUserByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)

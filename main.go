@@ -51,7 +51,6 @@ func main() {
 		{
 			users.POST("/", handlers.SaveNewUser)
 			users.GET("/:id", handlers.FindUserByID)
-			users.GET("/username/:username", handlers.FindUserByUseraname)
 			users.PUT("/:id", handlers.UpdateUserByID)
 			users.DELETE("/:id", handlers.DeleteUserByID)
 		}

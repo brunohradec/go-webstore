@@ -14,9 +14,15 @@ type DBEnv struct {
 	Password string
 }
 
+type JWTEnv struct {
+	AccessTokenSecret string
+	AccessTokenTTL    string
+}
+
 type Env struct {
 	Port string
 	DB   DBEnv
+	JWT  JWTEnv
 }
 
 func LoadDotenvVariables() (*Env, error) {
@@ -34,6 +40,10 @@ func LoadDotenvVariables() (*Env, error) {
 			Name:     os.Getenv("DB_NAME"),
 			Username: os.Getenv("DB_USERNAME"),
 			Password: os.Getenv("DB_PASSWORD"),
+		},
+		JWT: JWTEnv{
+			AccessTokenSecret: os.Getenv("JWT_ACCESS_TOKEN_SECRET"),
+			AccessTokenTTL:    os.Getenv("JWT_ACCESS_TOKEN_TTL"),
 		},
 	}
 
