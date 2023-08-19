@@ -7,6 +7,7 @@ import (
 
 	"github.com/brunohradec/go-webstore/controllers"
 	"github.com/brunohradec/go-webstore/initializers"
+	"github.com/brunohradec/go-webstore/middleware"
 	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
 )
@@ -48,6 +49,8 @@ func main() {
 	api := r.Group("/api")
 	{
 		users := api.Group("/users")
+		users.Use(middleware.JwtAuthMiddleware())
+
 		{
 			users.POST("/", controllers.SaveNewUser)
 			users.GET("/:id", controllers.FindUserByID)
@@ -56,6 +59,8 @@ func main() {
 		}
 
 		products := api.Group("/products")
+		users.Use(middleware.JwtAuthMiddleware())
+
 		{
 			products.POST("/", controllers.SaveNewProduct)
 			products.GET("/", controllers.FindAllProducts)
@@ -66,6 +71,8 @@ func main() {
 		}
 
 		comments := api.Group("/comments")
+		users.Use(middleware.JwtAuthMiddleware())
+
 		{
 			comments.POST("/", controllers.SaveNewComment)
 			comments.GET("/product/:productId", controllers.FindCommentsByProductID)

@@ -83,7 +83,7 @@ func FindUserByID(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, dtos.UserModelToResponseDto(user))
 }
 
 func UpdateUserByID(c *gin.Context) {
@@ -137,6 +137,7 @@ func UpdateUserByID(c *gin.Context) {
 		}
 	}
 
+	c.Status(http.StatusOK)
 }
 
 func DeleteUserByID(c *gin.Context) {
@@ -172,4 +173,6 @@ func DeleteUserByID(c *gin.Context) {
 			)
 		}
 	}
+
+	c.Status(http.StatusOK)
 }

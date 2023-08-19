@@ -121,6 +121,7 @@ func UpdateCommentByID(c *gin.Context) {
 		}
 	}
 
+	c.Status(http.StatusOK)
 }
 
 func DeleteCommentByID(c *gin.Context) {
@@ -155,4 +156,6 @@ func DeleteCommentByID(c *gin.Context) {
 			)
 		}
 	}
+
+	c.Status(http.StatusOK)
 }

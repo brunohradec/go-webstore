@@ -75,7 +75,7 @@ func FindProductByID(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, product)
+	c.JSON(http.StatusOK, dtos.ProductModelToResponseDTO(product))
 }
 
 func FindAllProducts(c *gin.Context) {
@@ -160,6 +160,7 @@ func UpdateProductByID(c *gin.Context) {
 		}
 	}
 
+	c.Status(http.StatusOK)
 }
 
 func DeleteProductByID(c *gin.Context) {
@@ -194,4 +195,6 @@ func DeleteProductByID(c *gin.Context) {
 			)
 		}
 	}
+
+	c.Status(http.StatusOK)
 }
