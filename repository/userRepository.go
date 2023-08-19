@@ -44,7 +44,7 @@ func FindUserByID(ID uint) (*models.User, error) {
 func FindUserByUseraname(username string) (*models.User, error) {
 	var user models.User
 
-	result := shared.DB.Where("username = ?").First(&user)
+	result := shared.DB.Where("username = ?", username).First(&user)
 
 	if result.Error != nil {
 		log.Println("ERROR: could not find user with username", username, result.Error)

@@ -17,12 +17,11 @@ func SaveNewComment(c *gin.Context) {
 	err := c.BindJSON(&comment)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not bind JSON to DTO",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not bind JSON to DTO",
+		})
+
+		return
 	}
 
 	// TODO - add reading of currently logged in user ID here
@@ -31,12 +30,11 @@ func SaveNewComment(c *gin.Context) {
 	id, err := repository.SaveNewComment(dtos.CommentDTOToModel(&comment, userID))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not save new comment",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not save new comment",
+		})
+
+		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -51,12 +49,11 @@ func FindCommentsByProductID(c *gin.Context) {
 	productId, err := strconv.ParseUint(productIdStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get product ID from path params",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not get product ID from path params",
+		})
+
+		return
 	}
 
 	comments := repository.FindCommentsByProductID(uint(productId), page)
@@ -78,65 +75,59 @@ func UpdateCommentByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get comment ID form path params",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not get comment ID form path params",
+		})
+
+		return
 	}
 
 	comment, err := repository.FindCommentByID(uint(id))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not find comment with the given ID",
-			http.StatusNotFound,
-			err,
-			c,
-		)
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Could not find comment with the given ID",
+		})
+
+		return
 	}
 
 	var commentDTO dtos.CommentDTO
 
 	if err := c.BindJSON(&commentDTO); err != nil {
-		RejectResponseAndLog(
-			"Could not bind JSON to DTO",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not bind JSON to DTO",
+		})
+
+		return
 	}
 
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get current user ID",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not get current user ID",
+		})
+
+		return
 	}
 
 	if comment.UserID != userID {
-		RejectResponseAndLog(
-			"Comment user ID and logged in user ID do not match",
-			http.StatusForbidden,
-			err,
-			c,
-		)
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "Comment user ID and logged in user ID do not match",
+		})
+
+		return
 	}
 
 	err = repository.UpdateCommentByID(uint(id), dtos.CommentDTOToModel(&commentDTO, userID))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not update comment",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not update comment",
+		})
+
+		return
 	}
 
 	c.Status(http.StatusOK)
@@ -147,54 +138,49 @@ func DeleteCommentByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get comment ID from path params",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not get comment ID from path params",
+		})
+
+		return
 	}
 
 	comment, err := repository.FindCommentByID(uint(id))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not find comment with the given ID",
-			http.StatusNotFound,
-			err,
-			c,
-		)
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Could not find comment with the given ID",
+		})
+
+		return
 	}
 
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get current user ID",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not get current user ID",
+		})
+
+		return
 	}
 
 	if comment.UserID != userID {
-		RejectResponseAndLog(
-			"Comment user ID and logged in user ID do not match",
-			http.StatusForbidden,
-			err,
-			c,
-		)
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "Comment user ID and logged in user ID do not match",
+		})
+
+		return
 	}
 
 	err = repository.DeleteCommentByID(uint(id))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Error deleting comment",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error deleting comment",
+		})
+
+		return
 	}
 
 	c.Status(http.StatusOK)

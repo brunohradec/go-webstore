@@ -19,23 +19,21 @@ func SaveNewProduct(c *gin.Context) {
 	err := c.BindJSON(&productDTO)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not bind JSON to product DTO",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not bind JSON to product DTO",
+		})
+
+		return
 	}
 
 	id, err := repository.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not save new product",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not save new product",
+		})
+
+		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -48,31 +46,28 @@ func FindProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get product ID from path params",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not get product ID from path params",
+		})
+
+		return
 	}
 
 	product, err := repository.FindProductByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
-				"Could not find product with the given ID",
-				http.StatusNotFound,
-				err,
-				c,
-			)
+			c.JSON(http.StatusNotFound, gin.H{
+				"message": "Could not find product with the given ID",
+			})
+
+			return
 		} else {
-			RejectResponseAndLog(
-				"Could not find product by ID",
-				http.StatusInternalServerError,
-				err,
-				c,
-			)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Could not find product by ID",
+			})
+
+			return
 		}
 	}
 
@@ -99,12 +94,11 @@ func FindProductsByUserID(c *gin.Context) {
 	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get user ID form path params",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not get user ID form path params",
+		})
+
+		return
 	}
 
 	products := repository.FindProductsByUserID(uint(userID), page)
@@ -122,65 +116,59 @@ func UpdateProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get product ID from path params",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not get product ID from path params",
+		})
+
+		return
 	}
 
 	product, err := repository.FindProductByID(uint(id))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not find product with the given ID",
-			http.StatusNotFound,
-			err,
-			c,
-		)
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Could not find product with the given ID",
+		})
+
+		return
 	}
 
 	var productDTO dtos.ProductDTO
 
 	if err := c.BindJSON(&productDTO); err != nil {
-		RejectResponseAndLog(
-			"Could not bind JSON to product",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not bind JSON to product",
+		})
+
+		return
 	}
 
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get current user ID",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not get current user ID",
+		})
+
+		return
 	}
 
 	if product.UserID != userID {
-		RejectResponseAndLog(
-			"Product user ID and logged in user ID do not match",
-			http.StatusForbidden,
-			err,
-			c,
-		)
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "Product user ID and logged in user ID do not match",
+		})
+
+		return
 	}
 
 	err = repository.UpdateProductByID(uint(id), dtos.ProductDTOToModel(&productDTO))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Error updating product",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error updating product",
+		})
+
+		return
 	}
 
 	c.Status(http.StatusOK)
@@ -191,54 +179,49 @@ func DeleteProductByID(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get product ID from path params",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not get product ID from path params",
+		})
+
+		return
 	}
 
 	product, err := repository.FindProductByID(uint(id))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not find product with the given ID",
-			http.StatusNotFound,
-			err,
-			c,
-		)
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Could not find product with the given ID",
+		})
+
+		return
 	}
 
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not get current user ID",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not get current user ID",
+		})
+
+		return
 	}
 
 	if product.UserID != userID {
-		RejectResponseAndLog(
-			"Product user ID and logged in user ID do not match",
-			http.StatusForbidden,
-			err,
-			c,
-		)
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "Product user ID and logged in user ID do not match",
+		})
+
+		return
 	}
 
 	err = repository.DeleteProductByID(uint(id))
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Error deleting product",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error deleting product",
+		})
+
+		return
 	}
 
 	c.Status(http.StatusOK)

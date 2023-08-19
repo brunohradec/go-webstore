@@ -18,31 +18,28 @@ func RegisterUser(c *gin.Context) {
 	err := c.BindJSON(&userDTO)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not bind JSON to user DTO",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Could not bind JSON to user DTO",
+		})
+
+		return
 	}
 
 	id, err := repository.SaveNewUser(dtos.UserDTOToModel(&userDTO))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			RejectResponseAndLog(
-				"User with the given username already exists",
-				http.StatusConflict,
-				err,
-				c,
-			)
+			c.JSON(http.StatusConflict, gin.H{
+				"message": "User with the given username already exists",
+			})
+
+			return
 		} else {
-			RejectResponseAndLog(
-				"Could not save new user",
-				http.StatusInternalServerError,
-				err,
-				c,
-			)
+			c.JSON(http.StatusConflict, gin.H{
+				"mesage": "Could not save new user",
+			})
+
+			return
 		}
 	}
 
@@ -60,45 +57,41 @@ func LoginUser(c *gin.Context) {
 	err := c.BindJSON(&loginDTO)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not bind JSON to DTO",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"mesage": "Could not bind JSON to DTO",
+		})
+
+		return
 	}
 
 	user, err := repository.FindUserByUseraname(loginDTO.Username)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not find user with the given username",
-			http.StatusNotFound,
-			err,
-			c,
-		)
+		c.JSON(http.StatusNotFound, gin.H{
+			"mesage": "Could not find user with the given username",
+		})
+
+		return
 	}
 
 	err = auth.VerifyPassword(loginDTO.Password, user.Password)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Provided password is incorrect",
-			http.StatusUnauthorized,
-			err,
-			c,
-		)
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"mesage": "Provided password is incorrect",
+		})
+
+		return
 	}
 
 	token, err := auth.GenerateToken(user.ID, secret, tokenTTL)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not generate access token",
-			http.StatusUnauthorized,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"mesage": "Could not generate access token",
+		})
+
+		return
 	}
 
 	c.JSON(http.StatusOK, dtos.LoginReponseDTO{
@@ -111,12 +104,11 @@ func GetCurrentUser(c *gin.Context) {
 	secret := shared.Env.JWT.AccessTokenSecret
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not extract JSON web token from request headers or query",
-			http.StatusUnauthorized,
-			err,
-			c,
-		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"mesage": "Could not extract JSON web token from request headers or query",
+		})
+
+		return
 	}
 
 	userID, err := auth.ExtractUserIDFromToken(token, secret)
@@ -124,12 +116,11 @@ func GetCurrentUser(c *gin.Context) {
 	user, err := repository.FindUserByID(userID)
 
 	if err != nil {
-		RejectResponseAndLog(
-			"Could not find user with the ID extracted from JSON web token",
-			http.StatusUnauthorized,
-			err,
-			c,
-		)
+		c.JSON(http.StatusNotFound, gin.H{
+			"mesage": "Could not find user with the ID extracted from JSON web token",
+		})
+
+		return
 	}
 
 	c.JSON(http.StatusOK, dtos.UserModelToResponseDto(user))
