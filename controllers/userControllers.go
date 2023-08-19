@@ -5,50 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/brunohradec/go-webstore/auth"
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
-
-func SaveNewUser(c *gin.Context) {
-	var userDTO dtos.UserDTO
-
-	err := c.BindJSON(&userDTO)
-
-	if err != nil {
-		RejectResponseAndLog(
-			"Error binding JSON while saving new user",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
-	}
-
-	id, err := repository.SaveNewUser(dtos.UserDTOToModel(&userDTO))
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			RejectResponseAndLog(
-				"Error while saving new user. User with the given username already exists",
-				http.StatusConflict,
-				err,
-				c,
-			)
-		} else {
-			RejectResponseAndLog(
-				"Error while saving new user",
-				http.StatusInternalServerError,
-				err,
-				c,
-			)
-		}
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"id": id,
-	})
-}
 
 func FindUserByID(c *gin.Context) {
 	idStr := c.Param("id")
@@ -56,7 +18,7 @@ func FindUserByID(c *gin.Context) {
 
 	if err != nil {
 		RejectResponseAndLog(
-			"Error while parsing ID from path params",
+			"Could not get user ID from path params",
 			http.StatusBadRequest,
 			err,
 			c,
@@ -68,14 +30,14 @@ func FindUserByID(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			RejectResponseAndLog(
-				"Error finding user. User with the given ID not found.",
+				"Could not find user with the given ID",
 				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
 			RejectResponseAndLog(
-				"Error finding user by ID",
+				"Could not find user by ID",
 				http.StatusInternalServerError,
 				err,
 				c,
@@ -92,8 +54,19 @@ func UpdateUserByID(c *gin.Context) {
 
 	if err != nil {
 		RejectResponseAndLog(
-			"Error while parsing ID from path params",
+			"Could not get user ID from path params",
 			http.StatusBadRequest,
+			err,
+			c,
+		)
+	}
+
+	user, err := repository.FindUserByID(uint(id))
+
+	if err != nil {
+		RejectResponseAndLog(
+			"Could not find user with the given ID",
+			http.StatusNotFound,
 			err,
 			c,
 		)
@@ -103,8 +76,28 @@ func UpdateUserByID(c *gin.Context) {
 
 	if err := c.BindJSON(&userDTO); err != nil {
 		RejectResponseAndLog(
-			"Error binding JSON while updating user",
+			"Could not bind JSON to DTO",
 			http.StatusBadRequest,
+			err,
+			c,
+		)
+	}
+
+	tokenUserID, err := auth.ExtractUserIDFromRequest(c)
+
+	if err != nil {
+		RejectResponseAndLog(
+			"Could not get current user ID",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
+	}
+
+	if user.ID != tokenUserID {
+		RejectResponseAndLog(
+			"Given user ID and logged in user ID do not match",
+			http.StatusForbidden,
 			err,
 			c,
 		)
@@ -115,58 +108,14 @@ func UpdateUserByID(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			RejectResponseAndLog(
-				"Error updating user. User with the given username already exists.",
+				"User with the given username already exists.",
 				http.StatusInternalServerError,
-				err,
-				c,
-			)
-		} else if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
-				"Error updating user. User with the given ID does not exist.",
-				http.StatusNotFound,
 				err,
 				c,
 			)
 		} else {
 			RejectResponseAndLog(
-				"Error updating user",
-				http.StatusInternalServerError,
-				err,
-				c,
-			)
-		}
-	}
-
-	c.Status(http.StatusOK)
-}
-
-func DeleteUserByID(c *gin.Context) {
-	idStr := c.Param("id")
-
-	id, err := strconv.ParseUint(idStr, 10, 64)
-
-	if err != nil {
-		RejectResponseAndLog(
-			"Error while parsing ID from path params",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
-	}
-
-	err = repository.DeleteUserByID(uint(id))
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
-				"Error deleting user. User with the given ID does not exist",
-				http.StatusNotFound,
-				err,
-				c,
-			)
-		} else {
-			RejectResponseAndLog(
-				"Error deleting user",
+				"Could not update user",
 				http.StatusInternalServerError,
 				err,
 				c,

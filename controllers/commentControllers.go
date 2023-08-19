@@ -1,15 +1,14 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
+	"github.com/brunohradec/go-webstore/auth"
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/paging"
 	"github.com/brunohradec/go-webstore/repository"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func SaveNewComment(c *gin.Context) {
@@ -19,7 +18,7 @@ func SaveNewComment(c *gin.Context) {
 
 	if err != nil {
 		RejectResponseAndLog(
-			"Error binding JSON while saving new comment",
+			"Could not bind JSON to DTO",
 			http.StatusBadRequest,
 			err,
 			c,
@@ -27,13 +26,13 @@ func SaveNewComment(c *gin.Context) {
 	}
 
 	// TODO - add reading of currently logged in user ID here
-	userId := uint(1)
+	userID := uint(1)
 
-	id, err := repository.SaveNewComment(dtos.CommentDTOToModel(&comment, userId))
+	id, err := repository.SaveNewComment(dtos.CommentDTOToModel(&comment, userID))
 
 	if err != nil {
 		RejectResponseAndLog(
-			"Error while saving new comment",
+			"Could not save new comment",
 			http.StatusInternalServerError,
 			err,
 			c,
@@ -53,7 +52,7 @@ func FindCommentsByProductID(c *gin.Context) {
 
 	if err != nil {
 		RejectResponseAndLog(
-			"Error while parsing ID from path params",
+			"Could not get product ID from path params",
 			http.StatusBadRequest,
 			err,
 			c,
@@ -80,8 +79,19 @@ func UpdateCommentByID(c *gin.Context) {
 
 	if err != nil {
 		RejectResponseAndLog(
-			"Error while parsing ID from path params",
+			"Could not get comment ID form path params",
 			http.StatusBadRequest,
+			err,
+			c,
+		)
+	}
+
+	comment, err := repository.FindCommentByID(uint(id))
+
+	if err != nil {
+		RejectResponseAndLog(
+			"Could not find comment with the given ID",
+			http.StatusNotFound,
 			err,
 			c,
 		)
@@ -91,34 +101,42 @@ func UpdateCommentByID(c *gin.Context) {
 
 	if err := c.BindJSON(&commentDTO); err != nil {
 		RejectResponseAndLog(
-			"Error binding JSON while updating comment",
+			"Could not bind JSON to DTO",
 			http.StatusBadRequest,
 			err,
 			c,
 		)
 	}
 
-	// TODO - add reading of currently logged in user ID here
-	userId := uint(1)
-
-	err = repository.UpdateCommentByID(uint(id), dtos.CommentDTOToModel(&commentDTO, userId))
+	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
-				"Error updating comment. Comment with the given ID does not exist",
-				http.StatusNotFound,
-				err,
-				c,
-			)
-		} else {
-			RejectResponseAndLog(
-				"Error updating comment",
-				http.StatusInternalServerError,
-				err,
-				c,
-			)
-		}
+		RejectResponseAndLog(
+			"Could not get current user ID",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
+	}
+
+	if comment.UserID != userID {
+		RejectResponseAndLog(
+			"Comment user ID and logged in user ID do not match",
+			http.StatusForbidden,
+			err,
+			c,
+		)
+	}
+
+	err = repository.UpdateCommentByID(uint(id), dtos.CommentDTOToModel(&commentDTO, userID))
+
+	if err != nil {
+		RejectResponseAndLog(
+			"Could not update comment",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 	}
 
 	c.Status(http.StatusOK)
@@ -130,8 +148,39 @@ func DeleteCommentByID(c *gin.Context) {
 
 	if err != nil {
 		RejectResponseAndLog(
-			"Error while parsing ID from path params",
+			"Could not get comment ID from path params",
 			http.StatusBadRequest,
+			err,
+			c,
+		)
+	}
+
+	comment, err := repository.FindCommentByID(uint(id))
+
+	if err != nil {
+		RejectResponseAndLog(
+			"Could not find comment with the given ID",
+			http.StatusNotFound,
+			err,
+			c,
+		)
+	}
+
+	userID, err := auth.ExtractUserIDFromRequest(c)
+
+	if err != nil {
+		RejectResponseAndLog(
+			"Could not get current user ID",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
+	}
+
+	if comment.UserID != userID {
+		RejectResponseAndLog(
+			"Comment user ID and logged in user ID do not match",
+			http.StatusForbidden,
 			err,
 			c,
 		)
@@ -140,21 +189,12 @@ func DeleteCommentByID(c *gin.Context) {
 	err = repository.DeleteCommentByID(uint(id))
 
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			RejectResponseAndLog(
-				"Error deleting comment. Comment with the given ID does not exist",
-				http.StatusNotFound,
-				err,
-				c,
-			)
-		} else {
-			RejectResponseAndLog(
-				"Error deleting comment",
-				http.StatusInternalServerError,
-				err,
-				c,
-			)
-		}
+		RejectResponseAndLog(
+			"Error deleting comment",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 	}
 
 	c.Status(http.StatusOK)

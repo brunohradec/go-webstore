@@ -48,14 +48,19 @@ func main() {
 
 	api := r.Group("/api")
 	{
+		auth := api.Group("/auth")
+		{
+			auth.POST("/register", controllers.RegisterUser)
+			auth.POST("/login", controllers.LoginUser)
+			auth.GET("/me", controllers.GetCurrentUser)
+		}
+
 		users := api.Group("/users")
 		users.Use(middleware.JwtAuthMiddleware())
 
 		{
-			users.POST("/", controllers.SaveNewUser)
 			users.GET("/:id", controllers.FindUserByID)
 			users.PUT("/:id", controllers.UpdateUserByID)
-			users.DELETE("/:id", controllers.DeleteUserByID)
 		}
 
 		products := api.Group("/products")

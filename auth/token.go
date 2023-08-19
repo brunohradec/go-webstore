@@ -5,16 +5,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken(userId uint, ttl int, secret string) (string, error) {
+func GenerateToken(userID uint, secret string, ttl int) (string, error) {
 	claims := jwt.MapClaims{}
 
 	claims["authorized"] = true
-	claims["user_id"] = userId
-	claims["exp"] = time.Now().Add(time.Hour * time.Duration(ttl)).Unix()
+	claims["user_id"] = userID
+	claims["exp"] = time.Now().Add(time.Second * time.Duration(ttl)).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -72,4 +73,15 @@ func ExtractUserIDFromToken(token string, secret string) (uint, error) {
 	} else {
 		return 0, errors.New("Provided token could not be parsed")
 	}
+}
+
+func ExtractUserIDFromRequest(c *gin.Context) (uint, error) {
+	token, err := ExtractTokenFromRequest(c)
+	secret := shared.Env.JWT.AccessTokenSecret
+
+	if err != nil {
+		return 0, err
+	}
+
+	return ExtractUserIDFromToken(token, secret)
 }

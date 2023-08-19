@@ -12,7 +12,7 @@ func SaveNewProduct(product *models.Product) (uint, error) {
 	result := shared.DB.Create(product)
 
 	if result.Error != nil {
-		log.Println("Error: could not save new product", result.Error)
+		log.Println("ERROR: could not save new product", result.Error)
 		return 0, result.Error
 	}
 
@@ -25,7 +25,7 @@ func FindProductByID(ID uint) (*models.Product, error) {
 	result := shared.DB.First(&product, ID)
 
 	if result.Error != nil {
-		log.Println("Error: could not find product with ID", ID, result.Error)
+		log.Println("ERROR: could not find product with ID", ID, result.Error)
 		return nil, result.Error
 	}
 
@@ -57,7 +57,7 @@ func UpdateProductByID(ID uint, updatedProduct *models.Product) error {
 	result := shared.DB.Save(updatedProduct)
 
 	if result.Error != nil {
-		log.Println("Error: could not update product with ID", ID, result.Error)
+		log.Println("ERROR: could not update product with ID", ID, result.Error)
 		return result.Error
 	}
 
@@ -68,7 +68,7 @@ func DeleteProductByID(ID uint) error {
 	result := shared.DB.Delete(&models.Product{}, ID)
 
 	if result.Error != nil {
-		log.Println("Error: could not delete product with ID", ID, result.Error)
+		log.Println("ERROR: could not delete product with ID", ID, result.Error)
 		return result.Error
 	}
 

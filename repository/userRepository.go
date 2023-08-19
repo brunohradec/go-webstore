@@ -12,7 +12,7 @@ func SaveNewUser(user *models.User) (uint, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 
 	if err != nil {
-		log.Println("Error: could not save new user. Error hashing password", err)
+		log.Println("ERROR: could not save new user. Error hashing password", err)
 		return 0, err
 	}
 
@@ -21,7 +21,7 @@ func SaveNewUser(user *models.User) (uint, error) {
 	result := shared.DB.Create(user)
 
 	if result.Error != nil {
-		log.Println("Error: could not save new user", result.Error)
+		log.Println("ERROR: could not save new user", result.Error)
 		return 0, result.Error
 	}
 
@@ -34,7 +34,7 @@ func FindUserByID(ID uint) (*models.User, error) {
 	result := shared.DB.First(&user, ID)
 
 	if result.Error != nil {
-		log.Println("Error: could not find user with id", ID, result.Error)
+		log.Println("ERROR: could not find user with id", ID, result.Error)
 		return nil, result.Error
 	}
 
@@ -47,7 +47,7 @@ func FindUserByUseraname(username string) (*models.User, error) {
 	result := shared.DB.Where("username = ?").First(&user)
 
 	if result.Error != nil {
-		log.Println("Error: could not find user with username", username, result.Error)
+		log.Println("ERROR: could not find user with username", username, result.Error)
 		return nil, result.Error
 	}
 
@@ -60,7 +60,7 @@ func UpdateUserByID(ID uint, updatedUser *models.User) error {
 	result := shared.DB.Save(updatedUser)
 
 	if result.Error != nil {
-		log.Println("Error: could not update user with ID", ID, result.Error)
+		log.Println("ERROR: could not update user with ID", ID, result.Error)
 		return result.Error
 	}
 
@@ -71,7 +71,7 @@ func DeleteUserByID(ID uint) error {
 	result := shared.DB.Delete(&models.User{}, ID)
 
 	if result.Error != nil {
-		log.Println("Error: could not delete user with ID", ID, result.Error)
+		log.Println("ERROR: could not delete user with ID", ID, result.Error)
 		return result.Error
 	}
 

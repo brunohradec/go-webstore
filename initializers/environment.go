@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -16,7 +17,7 @@ type DBEnv struct {
 
 type JWTEnv struct {
 	AccessTokenSecret string
-	AccessTokenTTL    string
+	AccessTokenTTL    int
 }
 
 type Env struct {
@@ -27,6 +28,12 @@ type Env struct {
 
 func LoadDotenvVariables() (*Env, error) {
 	err := godotenv.Load()
+
+	if err != nil {
+		return nil, err
+	}
+
+	accessTokenTTL, err := strconv.Atoi(os.Getenv("JWT_ACCESS_TOKEN_TTL"))
 
 	if err != nil {
 		return nil, err
@@ -43,7 +50,7 @@ func LoadDotenvVariables() (*Env, error) {
 		},
 		JWT: JWTEnv{
 			AccessTokenSecret: os.Getenv("JWT_ACCESS_TOKEN_SECRET"),
-			AccessTokenTTL:    os.Getenv("JWT_ACCESS_TOKEN_TTL"),
+			AccessTokenTTL:    accessTokenTTL,
 		},
 	}
 
