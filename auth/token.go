@@ -21,7 +21,7 @@ func GenerateToken(userId uint, ttl int, secret string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-func ValidateToken(token string, secret string, c *gin.Context) error {
+func ValidateToken(token string, secret string) error {
 	_, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})

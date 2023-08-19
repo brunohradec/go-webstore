@@ -5,9 +5,19 @@ import (
 
 	"github.com/brunohradec/go-webstore/models"
 	"github.com/brunohradec/go-webstore/shared"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func SaveNewUser(user *models.User) (uint, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		log.Println("Error: could not save new user. Error hashing password", err)
+		return 0, err
+	}
+
+	user.Password = string(passwordHash)
+
 	result := shared.DB.Create(user)
 
 	if result.Error != nil {
