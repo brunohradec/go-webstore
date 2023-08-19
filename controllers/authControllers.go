@@ -35,7 +35,7 @@ func RegisterUser(c *gin.Context) {
 
 			return
 		} else {
-			c.JSON(http.StatusConflict, gin.H{
+			c.JSON(http.StatusInternalServerError, gin.H{
 				"mesage": "Could not save new user",
 			})
 

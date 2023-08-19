@@ -3,7 +3,7 @@ package dtos
 import "github.com/brunohradec/go-webstore/models"
 
 type ProductDTO struct {
-	Name        string `json:"name" validate:"required"`
+	Name        string `json:"name" binding:"required"`
 	Description string `json:"description"`
 	Price       int64  `json:"price"`
 }

@@ -5,9 +5,9 @@ import "github.com/brunohradec/go-webstore/models"
 type UserDTO struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
-	Email     string `json:"email" validate:"required"`
-	Username  string `json:"username" validate:"required"`
-	Password  string `json:"password" validate:"required"`
+	Email     string `json:"email" binding:"required"`
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
 }
 
 type UserResponseDto struct {

@@ -7,8 +7,8 @@ import (
 )
 
 type CommentDTO struct {
-	Content   string `json:"content" validate:"required"`
-	ProductID uint   `json:"productID" validate:"required"`
+	Content   string `json:"content" binding:"required"`
+	ProductID uint   `json:"productID" binding:"required"`
 }
 
 type CommentResponseDto struct {
