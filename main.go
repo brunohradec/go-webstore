@@ -60,7 +60,7 @@ func main() {
 
 		{
 			users.GET("/:id", controllers.FindUserByID)
-			users.PUT("/:id", controllers.UpdateUserByID)
+			users.PUT("/:id", controllers.UpdateUser)
 		}
 
 		products := api.Group("/products")
