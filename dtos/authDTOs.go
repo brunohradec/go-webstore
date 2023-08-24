@@ -6,5 +6,5 @@ type LoginDTO struct {
 }
 
 type LoginReponseDTO struct {
-	Token string `json:"token"`
+	AccessToken string `json:"access_token"`
 }

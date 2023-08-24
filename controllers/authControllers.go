@@ -95,7 +95,7 @@ func LoginUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dtos.LoginReponseDTO{
-		Token: token,
+		AccessToken: token,
 	})
 }
 
