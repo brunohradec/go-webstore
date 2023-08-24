@@ -24,7 +24,7 @@ func SaveNewComment(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequest(c)
+	userID, err := auth.ExtractUserIDFromRequestToken(c)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -114,7 +114,7 @@ func UpdateCommentByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequest(c)
+	userID, err := auth.ExtractUserIDFromRequestToken(c)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -170,7 +170,7 @@ func DeleteCommentByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequest(c)
+	userID, err := auth.ExtractUserIDFromRequestToken(c)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{

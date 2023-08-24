@@ -75,7 +75,7 @@ func ExtractUserIDFromToken(token string, secret string) (uint, error) {
 	}
 }
 
-func ExtractUserIDFromRequest(c *gin.Context) (uint, error) {
+func ExtractUserIDFromRequestToken(c *gin.Context) (uint, error) {
 	token, err := ExtractTokenFromRequest(c)
 	secret := shared.Env.JWT.AccessTokenSecret
 

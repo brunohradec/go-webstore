@@ -26,7 +26,7 @@ func SaveNewProduct(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequest(c)
+	userID, err := auth.ExtractUserIDFromRequestToken(c)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -156,7 +156,7 @@ func UpdateProductByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequest(c)
+	userID, err := auth.ExtractUserIDFromRequestToken(c)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -212,7 +212,7 @@ func DeleteProductByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequest(c)
+	userID, err := auth.ExtractUserIDFromRequestToken(c)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{

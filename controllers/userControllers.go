@@ -46,7 +46,7 @@ func FindUserByID(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-	userID, err := auth.ExtractUserIDFromRequest(c)
+	userID, err := auth.ExtractUserIDFromRequestToken(c)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
