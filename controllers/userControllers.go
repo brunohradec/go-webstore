@@ -45,23 +45,12 @@ func FindUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, dtos.UserModelToResponseDto(user))
 }
 
-func UpdateUserByID(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+func UpdateUser(c *gin.Context) {
+	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Could not get user ID from path params",
-		})
-
-		return
-	}
-
-	user, err := repository.FindUserByID(uint(id))
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Could not find user with the given ID",
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Could not get current user ID",
 		})
 
 		return
@@ -77,28 +66,18 @@ func UpdateUserByID(c *gin.Context) {
 		return
 	}
 
-	tokenUserID, err := auth.ExtractUserIDFromRequest(c)
+	updatedUser := dtos.UserDTOToModel(&userDTO)
+
+	err = repository.UpdateUserByID(userID, updatedUser)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Could not get current user ID",
-		})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "User with the given ID not found.",
+			})
 
-		return
-	}
-
-	if user.ID != tokenUserID {
-		c.JSON(http.StatusForbidden, gin.H{
-			"message": "Given user ID and logged in user ID do not match",
-		})
-
-		return
-	}
-
-	err = repository.UpdateUserByID(uint(id), dtos.UserDTOToModel(&userDTO))
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return
+		} else if errors.Is(err, gorm.ErrDuplicatedKey) {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "User with the given username already exists.",
 			})

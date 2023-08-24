@@ -104,7 +104,7 @@ func GetCurrentUser(c *gin.Context) {
 	secret := shared.Env.JWT.AccessTokenSecret
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"mesage": "Could not extract JSON web token from request headers or query",
 		})
 

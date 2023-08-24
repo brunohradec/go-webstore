@@ -29,17 +29,17 @@ func SaveNewProduct(c *gin.Context) {
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Could not get current user ID",
 		})
 
 		return
 	}
 
-	product := dtos.ProductDTOToModel(&productDTO)
-	product.UserID = userID
+	newProduct := dtos.ProductDTOToModel(&productDTO)
+	newProduct.UserID = userID
 
-	id, err := repository.SaveNewProduct(product)
+	id, err := repository.SaveNewProduct(newProduct)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -159,7 +159,7 @@ func UpdateProductByID(c *gin.Context) {
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Could not get current user ID",
 		})
 
@@ -174,7 +174,10 @@ func UpdateProductByID(c *gin.Context) {
 		return
 	}
 
-	err = repository.UpdateProductByID(uint(id), dtos.ProductDTOToModel(&productDTO))
+	updatedProduct := dtos.ProductDTOToModel(&productDTO)
+	updatedProduct.UserID = userID
+
+	err = repository.UpdateProductByID(uint(id), updatedProduct)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -212,7 +215,7 @@ func DeleteProductByID(c *gin.Context) {
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Could not get current user ID",
 		})
 

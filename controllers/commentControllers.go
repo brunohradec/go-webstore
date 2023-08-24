@@ -27,17 +27,17 @@ func SaveNewComment(c *gin.Context) {
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Could not get current user ID",
 		})
 
 		return
 	}
 
-	comment := dtos.CommentDTOToModel(&commentDTO)
-	comment.UserID = userID
+	newComment := dtos.CommentDTOToModel(&commentDTO)
+	newComment.UserID = userID
 
-	id, err := repository.SaveNewComment(comment)
+	id, err := repository.SaveNewComment(newComment)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -117,7 +117,7 @@ func UpdateCommentByID(c *gin.Context) {
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Could not get current user ID",
 		})
 
@@ -132,10 +132,10 @@ func UpdateCommentByID(c *gin.Context) {
 		return
 	}
 
-	comment = dtos.CommentDTOToModel(&commentDTO)
-	comment.UserID = userID
+	updatedComment := dtos.CommentDTOToModel(&commentDTO)
+	updatedComment.UserID = userID
 
-	err = repository.UpdateCommentByID(uint(id), comment)
+	err = repository.UpdateCommentByID(uint(id), updatedComment)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -173,7 +173,7 @@ func DeleteCommentByID(c *gin.Context) {
 	userID, err := auth.ExtractUserIDFromRequest(c)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Could not get current user ID",
 		})
 
