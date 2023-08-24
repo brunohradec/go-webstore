@@ -26,7 +26,20 @@ func SaveNewProduct(c *gin.Context) {
 		return
 	}
 
-	id, err := repository.SaveNewProduct(dtos.ProductDTOToModel(&productDTO))
+	userID, err := auth.ExtractUserIDFromRequest(c)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not get current user ID",
+		})
+
+		return
+	}
+
+	product := dtos.ProductDTOToModel(&productDTO)
+	product.UserID = userID
+
+	id, err := repository.SaveNewProduct(product)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

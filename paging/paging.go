@@ -51,7 +51,7 @@ func ParsePageFromQuery(c *gin.Context) Page {
 			DefaultPageSize,
 		)
 
-		page = DefaultPageSize
+		pageSize = DefaultPageSize
 	}
 
 	return Page{

@@ -12,9 +12,9 @@ import (
 )
 
 func SaveNewComment(c *gin.Context) {
-	var comment dtos.CommentDTO
+	var commentDTO dtos.CommentDTO
 
-	err := c.BindJSON(&comment)
+	err := c.BindJSON(&commentDTO)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -24,10 +24,20 @@ func SaveNewComment(c *gin.Context) {
 		return
 	}
 
-	// TODO - add reading of currently logged in user ID here
-	userID := uint(1)
+	userID, err := auth.ExtractUserIDFromRequest(c)
 
-	id, err := repository.SaveNewComment(dtos.CommentDTOToModel(&comment, userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Could not get current user ID",
+		})
+
+		return
+	}
+
+	comment := dtos.CommentDTOToModel(&commentDTO)
+	comment.UserID = userID
+
+	id, err := repository.SaveNewComment(comment)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -64,7 +74,9 @@ func FindCommentsByProductID(c *gin.Context) {
 		* the user with the given ID must always exist and no error handling is
 		* necessary. */
 		user, _ := repository.FindUserByID(comment.UserID)
-		commentDTOs[i] = dtos.CommentModelToResponseDTO(&comment, user)
+
+		commentDTOs[i] = dtos.CommentModelToResponseDTO(&comment)
+		commentDTOs[i].Username = user.Username
 	}
 
 	c.JSON(http.StatusOK, commentDTOs)
@@ -120,7 +132,10 @@ func UpdateCommentByID(c *gin.Context) {
 		return
 	}
 
-	err = repository.UpdateCommentByID(uint(id), dtos.CommentDTOToModel(&commentDTO, userID))
+	comment = dtos.CommentDTOToModel(&commentDTO)
+	comment.UserID = userID
+
+	err = repository.UpdateCommentByID(uint(id), comment)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
