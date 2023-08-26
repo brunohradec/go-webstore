@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/brunohradec/go-webstore/auth"
+	"github.com/brunohradec/go-webstore/authutils"
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/services"
 	"github.com/gin-gonic/gin"
@@ -61,15 +61,7 @@ func (controller *UserControllerImpl) FindByID(c *gin.Context) {
 }
 
 func (controller *UserControllerImpl) UpdateCurrent(c *gin.Context) {
-	userID, err := auth.ExtractUserIDFromRequestToken(c)
-
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Could not get current user ID",
-		})
-
-		return
-	}
+	principalID := authutils.GetPrincipalIDFromRequest(c)
 
 	var userDTO dtos.UserDTO
 
@@ -83,7 +75,7 @@ func (controller *UserControllerImpl) UpdateCurrent(c *gin.Context) {
 
 	updatedUser := dtos.UserDTOToModel(&userDTO)
 
-	err = controller.UserService.UpdateByID(userID, updatedUser)
+	err := controller.UserService.UpdateByID(principalID, updatedUser)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

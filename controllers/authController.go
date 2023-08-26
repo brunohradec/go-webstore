@@ -4,10 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/brunohradec/go-webstore/auth"
+	"github.com/brunohradec/go-webstore/authutils"
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/services"
-	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -19,11 +18,16 @@ type AuthController interface {
 }
 
 type AuthControllerImpl struct {
+	AuthService services.AuthService
 	UserService services.UserService
 }
 
-func InitAuthController(userService services.UserService) AuthController {
+func InitAuthController(
+	authService services.AuthService,
+	userService services.UserService) AuthController {
+
 	return &AuthControllerImpl{
+		AuthService: authService,
 		UserService: userService,
 	}
 }
@@ -41,7 +45,7 @@ func (controller *AuthControllerImpl) Register(c *gin.Context) {
 		return
 	}
 
-	id, err := controller.UserService.Save(dtos.UserDTOToModel(&userDTO))
+	id, err := controller.AuthService.Register(dtos.UserDTOToModel(&userDTO))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
@@ -65,9 +69,6 @@ func (controller *AuthControllerImpl) Register(c *gin.Context) {
 }
 
 func (controller *AuthControllerImpl) Login(c *gin.Context) {
-	secret := shared.Env.JWT.AccessTokenSecret
-	tokenTTL := shared.Env.JWT.AccessTokenTTL
-
 	var loginDTO dtos.LoginDTO
 
 	err := c.BindJSON(&loginDTO)
@@ -80,27 +81,7 @@ func (controller *AuthControllerImpl) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := controller.UserService.FindByUseraname(loginDTO.Username)
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"mesage": "Could not find user with the given username",
-		})
-
-		return
-	}
-
-	err = auth.VerifyPassword(loginDTO.Password, user.Password)
-
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"mesage": "Provided password is incorrect",
-		})
-
-		return
-	}
-
-	token, err := auth.GenerateToken(user.ID, secret, tokenTTL)
+	token, err := controller.AuthService.Login(loginDTO.Username, loginDTO.Password)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -116,20 +97,9 @@ func (controller *AuthControllerImpl) Login(c *gin.Context) {
 }
 
 func (controller *AuthControllerImpl) Me(c *gin.Context) {
-	token, err := auth.ExtractTokenFromRequest(c)
-	secret := shared.Env.JWT.AccessTokenSecret
+	principalID := authutils.GetPrincipalIDFromRequest(c)
 
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"mesage": "Could not extract JSON web token from request headers or query",
-		})
-
-		return
-	}
-
-	userID, err := auth.ExtractUserIDFromToken(token, secret)
-
-	user, err := controller.UserService.FindByID(userID)
+	user, err := controller.UserService.FindByID(principalID)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{

@@ -1,11 +1,10 @@
-package auth
+package authutils
 
 import (
 	"errors"
 	"strings"
 	"time"
 
-	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -73,15 +72,4 @@ func ExtractUserIDFromToken(token string, secret string) (uint, error) {
 	} else {
 		return 0, errors.New("Provided token could not be parsed")
 	}
-}
-
-func ExtractUserIDFromRequestToken(c *gin.Context) (uint, error) {
-	token, err := ExtractTokenFromRequest(c)
-	secret := shared.Env.JWT.AccessTokenSecret
-
-	if err != nil {
-		return 0, err
-	}
-
-	return ExtractUserIDFromToken(token, secret)
 }

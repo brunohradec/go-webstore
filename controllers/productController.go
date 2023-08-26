@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/brunohradec/go-webstore/auth"
+	"github.com/brunohradec/go-webstore/authutils"
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/paging"
 	"github.com/brunohradec/go-webstore/services"
@@ -45,7 +45,7 @@ func (controller *ProductControllerImpl) Save(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequestToken(c)
+	principalID := authutils.GetPrincipalIDFromRequest(c)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -56,7 +56,7 @@ func (controller *ProductControllerImpl) Save(c *gin.Context) {
 	}
 
 	newProduct := dtos.ProductDTOToModel(&productDTO)
-	newProduct.UserID = userID
+	newProduct.UserID = principalID
 
 	id, err := controller.ProductService.Save(newProduct)
 
@@ -175,17 +175,9 @@ func (controller *ProductControllerImpl) UpdateByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequestToken(c)
+	principalID := authutils.GetPrincipalIDFromRequest(c)
 
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Could not get current user ID",
-		})
-
-		return
-	}
-
-	if product.UserID != userID {
+	if product.UserID != principalID {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": "Product user ID and logged in user ID do not match",
 		})
@@ -194,7 +186,7 @@ func (controller *ProductControllerImpl) UpdateByID(c *gin.Context) {
 	}
 
 	updatedProduct := dtos.ProductDTOToModel(&productDTO)
-	updatedProduct.UserID = userID
+	updatedProduct.UserID = principalID
 
 	err = controller.ProductService.UpdateByID(uint(id), updatedProduct)
 
@@ -231,17 +223,9 @@ func (controller *ProductControllerImpl) DeleteByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequestToken(c)
+	principalID := authutils.GetPrincipalIDFromRequest(c)
 
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Could not get current user ID",
-		})
-
-		return
-	}
-
-	if product.UserID != userID {
+	if product.UserID != principalID {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": "Product user ID and logged in user ID do not match",
 		})

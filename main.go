@@ -6,23 +6,22 @@ import (
 	"os"
 
 	"github.com/brunohradec/go-webstore/controllers"
-	"github.com/brunohradec/go-webstore/initializers"
+	"github.com/brunohradec/go-webstore/infrastructure"
 	"github.com/brunohradec/go-webstore/middleware"
 	"github.com/brunohradec/go-webstore/repositories"
 	"github.com/brunohradec/go-webstore/services"
-	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	env, err := initializers.LoadDotenvVariables()
+	env, err := infrastructure.Environment()
 
 	if err != nil {
 		log.Fatal("Error loading dotenv file")
 		os.Exit(1)
 	}
 
-	db, err := initializers.ConnectToDB(
+	DB, err := infrastructure.ConnectToDB(
 		env.DB.Host,
 		env.DB.Port,
 		env.DB.Name,
@@ -35,34 +34,34 @@ func main() {
 		os.Exit(1)
 	}
 
-	initializers.AutomigrateDB(db)
+	infrastructure.AutomigrateDB(DB)
 
-	shared.Env = env
-	shared.DB = db
-
-	userRepository := repositories.InitUserRepository(shared.DB)
-	productRepository := repositories.InitProductRepository(shared.DB)
-	commentRepository := repositories.InitCommentRepository(shared.DB)
+	userRepository := repositories.InitUserRepository(DB)
+	productRepository := repositories.InitProductRepository(DB)
+	commentRepository := repositories.InitCommentRepository(DB)
 
 	userService := services.InitUserService(userRepository)
 	productService := services.InitProductService(productRepository)
 	commentService := services.InitCommentService(commentRepository)
+	authService := services.InitAuthService(userRepository, env)
 
 	userController := controllers.InitUserController(userService)
 	productController := controllers.InitProductController(productService)
 	commentController := controllers.InitCommentController(commentService, userService)
-	authController := controllers.InitAuthController(userService)
+	authController := controllers.InitAuthController(authService, userService)
 
 	r := gin.Default()
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
+	authMiddleware := middleware.JwtAuthMiddleware(env)
 
 	api := r.Group("/api")
 	{
+		api.GET("/ping", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "pong",
+			})
+		})
+
 		auth := api.Group("/auth")
 		{
 			auth.POST("/register", authController.Register)
@@ -71,7 +70,7 @@ func main() {
 		}
 
 		users := api.Group("/users")
-		users.Use(middleware.JwtAuthMiddleware())
+		users.Use(authMiddleware)
 
 		{
 			users.GET("/:id", userController.FindByID)
@@ -79,7 +78,7 @@ func main() {
 		}
 
 		products := api.Group("/products")
-		users.Use(middleware.JwtAuthMiddleware())
+		users.Use(authMiddleware)
 
 		{
 			products.POST("/", productController.Save)
@@ -91,7 +90,7 @@ func main() {
 		}
 
 		comments := api.Group("/comments")
-		users.Use(middleware.JwtAuthMiddleware())
+		users.Use(authMiddleware)
 
 		{
 			comments.POST("/", commentController.Save)

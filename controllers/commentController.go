@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/brunohradec/go-webstore/auth"
+	"github.com/brunohradec/go-webstore/authutils"
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/paging"
 	"github.com/brunohradec/go-webstore/services"
@@ -46,18 +46,10 @@ func (controller *CommentControllerImpl) Save(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequestToken(c)
-
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Could not get current user ID",
-		})
-
-		return
-	}
+	principalID := authutils.GetPrincipalIDFromRequest(c)
 
 	newComment := dtos.CommentDTOToModel(&commentDTO)
-	newComment.UserID = userID
+	newComment.UserID = principalID
 
 	id, err := controller.CommentService.Save(newComment)
 
@@ -136,17 +128,9 @@ func (controller *CommentControllerImpl) UpdateByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequestToken(c)
+	principalID := authutils.GetPrincipalIDFromRequest(c)
 
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Could not get current user ID",
-		})
-
-		return
-	}
-
-	if comment.UserID != userID {
+	if comment.UserID != principalID {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": "Comment user ID and logged in user ID do not match",
 		})
@@ -155,7 +139,7 @@ func (controller *CommentControllerImpl) UpdateByID(c *gin.Context) {
 	}
 
 	updatedComment := dtos.CommentDTOToModel(&commentDTO)
-	updatedComment.UserID = userID
+	updatedComment.UserID = principalID
 
 	err = controller.CommentService.UpdateByID(uint(id), updatedComment)
 
@@ -192,17 +176,9 @@ func (controller *CommentControllerImpl) DeleteByID(c *gin.Context) {
 		return
 	}
 
-	userID, err := auth.ExtractUserIDFromRequestToken(c)
+	principalID := authutils.GetPrincipalIDFromRequest(c)
 
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Could not get current user ID",
-		})
-
-		return
-	}
-
-	if comment.UserID != userID {
+	if comment.UserID != principalID {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": "Comment user ID and logged in user ID do not match",
 		})

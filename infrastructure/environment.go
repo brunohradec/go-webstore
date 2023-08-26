@@ -1,4 +1,4 @@
-package initializers
+package infrastructure
 
 import (
 	"os"
@@ -26,7 +26,7 @@ type Env struct {
 	JWT  JWTEnv
 }
 
-func LoadDotenvVariables() (*Env, error) {
+func Environment() (*Env, error) {
 	err := godotenv.Load()
 
 	if err != nil {
