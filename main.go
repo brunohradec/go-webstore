@@ -8,6 +8,8 @@ import (
 	"github.com/brunohradec/go-webstore/controllers"
 	"github.com/brunohradec/go-webstore/initializers"
 	"github.com/brunohradec/go-webstore/middleware"
+	"github.com/brunohradec/go-webstore/repositories"
+	"github.com/brunohradec/go-webstore/services"
 	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
 )
@@ -38,6 +40,19 @@ func main() {
 	shared.Env = env
 	shared.DB = db
 
+	userRepository := repositories.InitUserRepository(shared.DB)
+	productRepository := repositories.InitProductRepository(shared.DB)
+	commentRepository := repositories.InitCommentRepository(shared.DB)
+
+	userService := services.InitUserService(userRepository)
+	productService := services.InitProductService(productRepository)
+	commentService := services.InitCommentService(commentRepository)
+
+	userController := controllers.InitUserController(userService)
+	productController := controllers.InitProductController(productService)
+	commentController := controllers.InitCommentController(commentService, userService)
+	authController := controllers.InitAuthController(userService)
+
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -50,39 +65,39 @@ func main() {
 	{
 		auth := api.Group("/auth")
 		{
-			auth.POST("/register", controllers.RegisterUser)
-			auth.POST("/login", controllers.LoginUser)
-			auth.GET("/me", controllers.GetCurrentUser)
+			auth.POST("/register", authController.Register)
+			auth.POST("/login", authController.Login)
+			auth.GET("/me", authController.Me)
 		}
 
 		users := api.Group("/users")
 		users.Use(middleware.JwtAuthMiddleware())
 
 		{
-			users.GET("/:id", controllers.FindUserByID)
-			users.PUT("/:id", controllers.UpdateUser)
+			users.GET("/:id", userController.FindByID)
+			users.PUT("/", userController.UpdateCurrent)
 		}
 
 		products := api.Group("/products")
 		users.Use(middleware.JwtAuthMiddleware())
 
 		{
-			products.POST("/", controllers.SaveNewProduct)
-			products.GET("/", controllers.FindAllProducts)
-			products.GET("/:id", controllers.FindProductByID)
-			products.GET("/user/:userId", controllers.FindProductsByUserID)
-			products.PUT("/:id", controllers.UpdateProductByID)
-			products.DELETE("/:id", controllers.DeleteProductByID)
+			products.POST("/", productController.Save)
+			products.GET("/", productController.FindAll)
+			products.GET("/:id", productController.FindByID)
+			products.GET("/user/:userId", productController.FindByUserID)
+			products.PUT("/:id", productController.UpdateByID)
+			products.DELETE("/:id", productController.DeleteByID)
 		}
 
 		comments := api.Group("/comments")
 		users.Use(middleware.JwtAuthMiddleware())
 
 		{
-			comments.POST("/", controllers.SaveNewComment)
-			comments.GET("/product/:productId", controllers.FindCommentsByProductID)
-			comments.PUT("/:id", controllers.UpdateCommentByID)
-			comments.DELETE("/:id", controllers.DeleteCommentByID)
+			comments.POST("/", commentController.Save)
+			comments.GET("/product/:productId", commentController.FindByProductID)
+			comments.PUT("/:id", commentController.UpdateByID)
+			comments.DELETE("/:id", commentController.DeleteByID)
 		}
 	}
 

@@ -3,7 +3,7 @@ package dtos
 import (
 	"time"
 
-	"github.com/brunohradec/go-webstore/models"
+	"github.com/brunohradec/go-webstore/entities"
 )
 
 type CommentDTO struct {
@@ -20,14 +20,14 @@ type CommentResponseDto struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-func CommentDTOToModel(dto *CommentDTO) *models.Comment {
-	return &models.Comment{
+func CommentDTOToModel(dto *CommentDTO) *entities.Comment {
+	return &entities.Comment{
 		Content:   dto.Content,
 		ProductID: dto.ProductID,
 	}
 }
 
-func CommentModelToResponseDTO(model *models.Comment) *CommentResponseDto {
+func CommentModelToResponseDTO(model *entities.Comment) *CommentResponseDto {
 	return &CommentResponseDto{
 		ID:        model.ID,
 		Content:   model.Content,

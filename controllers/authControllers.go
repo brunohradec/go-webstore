@@ -6,13 +6,29 @@ import (
 
 	"github.com/brunohradec/go-webstore/auth"
 	"github.com/brunohradec/go-webstore/dtos"
-	"github.com/brunohradec/go-webstore/repository"
+	"github.com/brunohradec/go-webstore/services"
 	"github.com/brunohradec/go-webstore/shared"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func RegisterUser(c *gin.Context) {
+type AuthController interface {
+	Register(c *gin.Context)
+	Login(c *gin.Context)
+	Me(c *gin.Context)
+}
+
+type AuthControllerImpl struct {
+	UserService services.UserService
+}
+
+func InitAuthController(userService services.UserService) AuthController {
+	return &AuthControllerImpl{
+		UserService: userService,
+	}
+}
+
+func (controller *AuthControllerImpl) Register(c *gin.Context) {
 	var userDTO dtos.UserDTO
 
 	err := c.BindJSON(&userDTO)
@@ -25,7 +41,7 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	id, err := repository.SaveNewUser(dtos.UserDTOToModel(&userDTO))
+	id, err := controller.UserService.Save(dtos.UserDTOToModel(&userDTO))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
@@ -48,7 +64,7 @@ func RegisterUser(c *gin.Context) {
 	})
 }
 
-func LoginUser(c *gin.Context) {
+func (controller *AuthControllerImpl) Login(c *gin.Context) {
 	secret := shared.Env.JWT.AccessTokenSecret
 	tokenTTL := shared.Env.JWT.AccessTokenTTL
 
@@ -64,7 +80,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	user, err := repository.FindUserByUseraname(loginDTO.Username)
+	user, err := controller.UserService.FindByUseraname(loginDTO.Username)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -99,7 +115,7 @@ func LoginUser(c *gin.Context) {
 	})
 }
 
-func GetCurrentUser(c *gin.Context) {
+func (controller *AuthControllerImpl) Me(c *gin.Context) {
 	token, err := auth.ExtractTokenFromRequest(c)
 	secret := shared.Env.JWT.AccessTokenSecret
 
@@ -113,7 +129,7 @@ func GetCurrentUser(c *gin.Context) {
 
 	userID, err := auth.ExtractUserIDFromToken(token, secret)
 
-	user, err := repository.FindUserByID(userID)
+	user, err := controller.UserService.FindByID(userID)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{

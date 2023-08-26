@@ -1,6 +1,6 @@
 package dtos
 
-import "github.com/brunohradec/go-webstore/models"
+import "github.com/brunohradec/go-webstore/entities"
 
 type ProductDTO struct {
 	Name        string `json:"name" binding:"required"`
@@ -16,15 +16,15 @@ type ProductResponseDTO struct {
 	UserID      uint   `json:"userID"`
 }
 
-func ProductDTOToModel(dto *ProductDTO) *models.Product {
-	return &models.Product{
+func ProductDTOToModel(dto *ProductDTO) *entities.Product {
+	return &entities.Product{
 		Name:        dto.Name,
 		Description: dto.Description,
 		Price:       dto.Price,
 	}
 }
 
-func ProductModelToResponseDTO(model *models.Product) *ProductResponseDTO {
+func ProductModelToResponseDTO(model *entities.Product) *ProductResponseDTO {
 	return &ProductResponseDTO{
 		ID:          model.ID,
 		Name:        model.Name,

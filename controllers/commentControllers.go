@@ -7,11 +7,33 @@ import (
 	"github.com/brunohradec/go-webstore/auth"
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/paging"
-	"github.com/brunohradec/go-webstore/repository"
+	"github.com/brunohradec/go-webstore/services"
 	"github.com/gin-gonic/gin"
 )
 
-func SaveNewComment(c *gin.Context) {
+type CommentController interface {
+	Save(c *gin.Context)
+	FindByProductID(c *gin.Context)
+	UpdateByID(c *gin.Context)
+	DeleteByID(c *gin.Context)
+}
+
+type CommentControllerImpl struct {
+	CommentService services.CommentService
+	UserService    services.UserService
+}
+
+func InitCommentController(
+	commentService services.CommentService,
+	userService services.UserService,
+) CommentController {
+	return &CommentControllerImpl{
+		CommentService: commentService,
+		UserService:    userService,
+	}
+}
+
+func (controller *CommentControllerImpl) Save(c *gin.Context) {
 	var commentDTO dtos.CommentDTO
 
 	err := c.BindJSON(&commentDTO)
@@ -37,7 +59,7 @@ func SaveNewComment(c *gin.Context) {
 	newComment := dtos.CommentDTOToModel(&commentDTO)
 	newComment.UserID = userID
 
-	id, err := repository.SaveNewComment(newComment)
+	id, err := controller.CommentService.Save(newComment)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -52,7 +74,7 @@ func SaveNewComment(c *gin.Context) {
 	})
 }
 
-func FindCommentsByProductID(c *gin.Context) {
+func (controller *CommentControllerImpl) FindByProductID(c *gin.Context) {
 	page := paging.ParsePageFromQuery(c)
 
 	productIdStr := c.Param("productId")
@@ -66,14 +88,14 @@ func FindCommentsByProductID(c *gin.Context) {
 		return
 	}
 
-	comments := repository.FindCommentsByProductID(uint(productId), page)
+	comments := controller.CommentService.FindByProductID(uint(productId), page)
 	commentDTOs := make([]*dtos.CommentResponseDto, len(comments))
 
 	for i, comment := range comments {
 		/* As userID commes from Comment entity and userID is a foreign key,
 		* the user with the given ID must always exist and no error handling is
 		* necessary. */
-		user, _ := repository.FindUserByID(comment.UserID)
+		user, _ := controller.UserService.FindByID(comment.UserID)
 
 		commentDTOs[i] = dtos.CommentModelToResponseDTO(&comment)
 		commentDTOs[i].Username = user.Username
@@ -82,7 +104,7 @@ func FindCommentsByProductID(c *gin.Context) {
 	c.JSON(http.StatusOK, commentDTOs)
 }
 
-func UpdateCommentByID(c *gin.Context) {
+func (controller *CommentControllerImpl) UpdateByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
@@ -94,7 +116,7 @@ func UpdateCommentByID(c *gin.Context) {
 		return
 	}
 
-	comment, err := repository.FindCommentByID(uint(id))
+	comment, err := controller.CommentService.FindByID(uint(id))
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -135,7 +157,7 @@ func UpdateCommentByID(c *gin.Context) {
 	updatedComment := dtos.CommentDTOToModel(&commentDTO)
 	updatedComment.UserID = userID
 
-	err = repository.UpdateCommentByID(uint(id), updatedComment)
+	err = controller.CommentService.UpdateByID(uint(id), updatedComment)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -148,7 +170,7 @@ func UpdateCommentByID(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func DeleteCommentByID(c *gin.Context) {
+func (controller *CommentControllerImpl) DeleteByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
@@ -160,7 +182,7 @@ func DeleteCommentByID(c *gin.Context) {
 		return
 	}
 
-	comment, err := repository.FindCommentByID(uint(id))
+	comment, err := controller.CommentService.FindByID(uint(id))
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -188,7 +210,7 @@ func DeleteCommentByID(c *gin.Context) {
 		return
 	}
 
-	err = repository.DeleteCommentByID(uint(id))
+	err = controller.UserService.DeleteByID(uint(id))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

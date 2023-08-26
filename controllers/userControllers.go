@@ -7,12 +7,27 @@ import (
 
 	"github.com/brunohradec/go-webstore/auth"
 	"github.com/brunohradec/go-webstore/dtos"
-	"github.com/brunohradec/go-webstore/repository"
+	"github.com/brunohradec/go-webstore/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func FindUserByID(c *gin.Context) {
+type UserController interface {
+	FindByID(c *gin.Context)
+	UpdateCurrent(c *gin.Context)
+}
+
+type UserControllerImpl struct {
+	UserService services.UserService
+}
+
+func InitUserController(userService services.UserService) UserController {
+	return &UserControllerImpl{
+		UserService: userService,
+	}
+}
+
+func (controller *UserControllerImpl) FindByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
@@ -24,7 +39,7 @@ func FindUserByID(c *gin.Context) {
 		return
 	}
 
-	user, err := repository.FindUserByID(uint(id))
+	user, err := controller.UserService.FindByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -45,7 +60,7 @@ func FindUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, dtos.UserModelToResponseDto(user))
 }
 
-func UpdateUser(c *gin.Context) {
+func (controller *UserControllerImpl) UpdateCurrent(c *gin.Context) {
 	userID, err := auth.ExtractUserIDFromRequestToken(c)
 
 	if err != nil {
@@ -68,7 +83,7 @@ func UpdateUser(c *gin.Context) {
 
 	updatedUser := dtos.UserDTOToModel(&userDTO)
 
-	err = repository.UpdateUserByID(userID, updatedUser)
+	err = controller.UserService.UpdateByID(userID, updatedUser)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

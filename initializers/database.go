@@ -3,7 +3,7 @@ package initializers
 import (
 	"fmt"
 
-	"github.com/brunohradec/go-webstore/models"
+	"github.com/brunohradec/go-webstore/entities"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -34,7 +34,7 @@ func ConnectToDB(
 }
 
 func AutomigrateDB(db *gorm.DB) {
-	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.Product{})
-	db.AutoMigrate(&models.Comment{})
+	db.AutoMigrate(&entities.User{})
+	db.AutoMigrate(&entities.Product{})
+	db.AutoMigrate(&entities.Comment{})
 }

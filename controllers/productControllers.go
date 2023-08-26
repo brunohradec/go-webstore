@@ -8,12 +8,31 @@ import (
 	"github.com/brunohradec/go-webstore/auth"
 	"github.com/brunohradec/go-webstore/dtos"
 	"github.com/brunohradec/go-webstore/paging"
-	"github.com/brunohradec/go-webstore/repository"
+	"github.com/brunohradec/go-webstore/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func SaveNewProduct(c *gin.Context) {
+type ProductController interface {
+	Save(c *gin.Context)
+	FindByID(c *gin.Context)
+	FindAll(c *gin.Context)
+	FindByUserID(c *gin.Context)
+	UpdateByID(c *gin.Context)
+	DeleteByID(c *gin.Context)
+}
+
+type ProductControllerImpl struct {
+	ProductService services.ProductService
+}
+
+func InitProductController(productService services.ProductService) ProductController {
+	return &ProductControllerImpl{
+		ProductService: productService,
+	}
+}
+
+func (controller *ProductControllerImpl) Save(c *gin.Context) {
 	var productDTO dtos.ProductDTO
 
 	err := c.BindJSON(&productDTO)
@@ -39,7 +58,7 @@ func SaveNewProduct(c *gin.Context) {
 	newProduct := dtos.ProductDTOToModel(&productDTO)
 	newProduct.UserID = userID
 
-	id, err := repository.SaveNewProduct(newProduct)
+	id, err := controller.ProductService.Save(newProduct)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -54,7 +73,7 @@ func SaveNewProduct(c *gin.Context) {
 	})
 }
 
-func FindProductByID(c *gin.Context) {
+func (controller *ProductControllerImpl) FindByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
@@ -66,7 +85,7 @@ func FindProductByID(c *gin.Context) {
 		return
 	}
 
-	product, err := repository.FindProductByID(uint(id))
+	product, err := controller.ProductService.FindByID(uint(id))
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -87,10 +106,10 @@ func FindProductByID(c *gin.Context) {
 	c.JSON(http.StatusOK, dtos.ProductModelToResponseDTO(product))
 }
 
-func FindAllProducts(c *gin.Context) {
+func (controller *ProductControllerImpl) FindAll(c *gin.Context) {
 	page := paging.ParsePageFromQuery(c)
 
-	products := repository.FindAllProducts(page)
+	products := controller.ProductService.FindAll(page)
 	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
 
 	for i, product := range products {
@@ -100,7 +119,7 @@ func FindAllProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, productDTOs)
 }
 
-func FindProductsByUserID(c *gin.Context) {
+func (controller *ProductControllerImpl) FindByUserID(c *gin.Context) {
 	page := paging.ParsePageFromQuery(c)
 
 	userIDStr := c.Param("userId")
@@ -114,7 +133,7 @@ func FindProductsByUserID(c *gin.Context) {
 		return
 	}
 
-	products := repository.FindProductsByUserID(uint(userID), page)
+	products := controller.ProductService.FindByUserID(uint(userID), page)
 	productDTOs := make([]*dtos.ProductResponseDTO, len(products))
 
 	for i, product := range products {
@@ -124,7 +143,7 @@ func FindProductsByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, productDTOs)
 }
 
-func UpdateProductByID(c *gin.Context) {
+func (controller *ProductControllerImpl) UpdateByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
@@ -136,7 +155,7 @@ func UpdateProductByID(c *gin.Context) {
 		return
 	}
 
-	product, err := repository.FindProductByID(uint(id))
+	product, err := controller.ProductService.FindByID(uint(id))
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -177,7 +196,7 @@ func UpdateProductByID(c *gin.Context) {
 	updatedProduct := dtos.ProductDTOToModel(&productDTO)
 	updatedProduct.UserID = userID
 
-	err = repository.UpdateProductByID(uint(id), updatedProduct)
+	err = controller.ProductService.UpdateByID(uint(id), updatedProduct)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -190,7 +209,7 @@ func UpdateProductByID(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func DeleteProductByID(c *gin.Context) {
+func (controller *ProductControllerImpl) DeleteByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
@@ -202,7 +221,7 @@ func DeleteProductByID(c *gin.Context) {
 		return
 	}
 
-	product, err := repository.FindProductByID(uint(id))
+	product, err := controller.ProductService.FindByID(uint(id))
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -230,7 +249,7 @@ func DeleteProductByID(c *gin.Context) {
 		return
 	}
 
-	err = repository.DeleteProductByID(uint(id))
+	err = controller.ProductService.DeleteByID(uint(id))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
