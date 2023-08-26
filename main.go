@@ -66,7 +66,11 @@ func main() {
 		{
 			auth.POST("/register", authController.Register)
 			auth.POST("/login", authController.Login)
-			auth.GET("/me", authController.Me)
+
+			me := auth.Group("/me")
+			me.Use(authMiddleware)
+
+			me.GET("/", authController.Me)
 		}
 
 		users := api.Group("/users")
@@ -78,7 +82,7 @@ func main() {
 		}
 
 		products := api.Group("/products")
-		users.Use(authMiddleware)
+		products.Use(authMiddleware)
 
 		{
 			products.POST("/", productController.Save)
@@ -90,7 +94,7 @@ func main() {
 		}
 
 		comments := api.Group("/comments")
-		users.Use(authMiddleware)
+		comments.Use(authMiddleware)
 
 		{
 			comments.POST("/", commentController.Save)
